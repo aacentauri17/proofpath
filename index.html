@@ -1,0 +1,1734 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ProofPath - Student Career Launchpad</title>
+  <meta name="description" content="A zero-backend student career launchpad that scores internship readiness and recommends free proof-building actions.">
+  <meta name="theme-color" content="#0f6f63">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+
+  <!-- Social share cards (the share + copy-profile loop is core to growth) -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="ProofPath">
+  <meta property="og:title" content="ProofPath - Turn messy proof into an internship plan">
+  <meta property="og:description" content="Get an internship readiness score, a shareable proof profile, and the next best free actions for the next 14 days.">
+  <meta property="og:image" content="/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="ProofPath - Turn messy proof into an internship plan">
+  <meta name="twitter:description" content="Get an internship readiness score, a shareable proof profile, and the next best free actions for the next 14 days.">
+  <meta name="twitter:image" content="/og-image.png">
+  <style>
+    :root {
+      --paper: #f7f2e8;
+      --paper-2: #fffaf0;
+      --ink: #17130d;
+      --muted: #695f50;
+      --line: #d8cbbb;
+      --line-strong: #a89478;
+      --brand: #0f6f63;
+      --brand-dark: #083f39;
+      --clay: #bc563a;
+      --mustard: #d4a52d;
+      --plum: #5d466c;
+      --blue: #356a9a;
+      --good: #18734e;
+      --warn: #a05a12;
+      --bad: #b83b2b;
+      --shadow: 0 18px 55px rgba(44, 35, 22, 0.16);
+      --radius: 8px;
+      color-scheme: light;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+      background: var(--paper);
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(23, 19, 13, 0.045) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(23, 19, 13, 0.035) 1px, transparent 1px),
+        var(--paper);
+      background-size: 34px 34px;
+      font-family: Georgia, "Times New Roman", serif;
+      line-height: 1.45;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    a {
+      color: var(--brand-dark);
+    }
+
+    .app {
+      width: min(1240px, 100%);
+      margin: 0 auto;
+      padding: clamp(16px, 3vw, 34px);
+    }
+
+    .masthead {
+      min-height: 92vh;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      gap: clamp(18px, 3vw, 34px);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding-bottom: 14px;
+      border-bottom: 2px solid var(--ink);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      font-family: "Trebuchet MS", Verdana, sans-serif;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .brand-mark {
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      color: var(--paper-2);
+      background: var(--ink);
+      border-radius: 50%;
+      font-size: 0.86rem;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .shell {
+      display: grid;
+      grid-template-columns: minmax(0, 0.92fr) minmax(360px, 1.08fr);
+      gap: clamp(18px, 3vw, 34px);
+      align-items: stretch;
+    }
+
+    .hero {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 24px;
+      padding: clamp(18px, 3vw, 28px) 0;
+    }
+
+    .eyebrow,
+    .label,
+    .mini,
+    .chip,
+    .score-label,
+    .pill,
+    .stamp,
+    .table-label {
+      font-family: "Trebuchet MS", Verdana, sans-serif;
+      letter-spacing: 0;
+    }
+
+    .eyebrow {
+      max-width: max-content;
+      margin: 0 0 16px;
+      padding: 6px 9px;
+      color: var(--brand-dark);
+      border: 1px solid var(--brand);
+      background: rgba(15, 111, 99, 0.1);
+      font-size: 0.76rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      max-width: 780px;
+      margin-bottom: 18px;
+      font-size: clamp(2.7rem, 7vw, 6.8rem);
+      line-height: 0.88;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin-bottom: 8px;
+      font-size: clamp(1.45rem, 2.4vw, 2.15rem);
+      line-height: 1.02;
+    }
+
+    h3 {
+      margin-bottom: 6px;
+      font-size: 1.1rem;
+      line-height: 1.12;
+    }
+
+    .lede {
+      max-width: 640px;
+      color: var(--muted);
+      font-size: clamp(1rem, 1.45vw, 1.2rem);
+    }
+
+    .hero-board {
+      border-top: 2px solid var(--ink);
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+    }
+
+    .board-item {
+      min-height: 124px;
+      padding: 14px;
+      border-right: 1px solid var(--ink);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .board-item:last-child {
+      border-right: 0;
+    }
+
+    .board-item strong {
+      font-size: clamp(1.7rem, 3vw, 2.55rem);
+      line-height: 1;
+    }
+
+    .board-item span {
+      color: var(--muted);
+      font-family: "Trebuchet MS", Verdana, sans-serif;
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .btn {
+      min-height: 42px;
+      border: 2px solid var(--ink);
+      border-radius: var(--radius);
+      padding: 0 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: var(--ink);
+      background: var(--paper-2);
+      font-family: "Trebuchet MS", Verdana, sans-serif;
+      font-size: 0.92rem;
+      font-weight: 800;
+      text-decoration: none;
+      box-shadow: 3px 3px 0 var(--ink);
+      transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+    }
+
+    .btn:hover,
+    .btn:focus-visible {
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0 var(--ink);
+    }
+
+    .btn.primary {
+      color: var(--paper-2);
+      background: var(--brand);
+    }
+
+    .btn.clay {
+      color: var(--paper-2);
+      background: var(--clay);
+    }
+
+    .btn.ghost {
+      box-shadow: none;
+      background: transparent;
+    }
+
+    .btn:disabled {
+      opacity: 0.62;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .panel {
+      border: 2px solid var(--ink);
+      border-radius: var(--radius);
+      background: var(--paper-2);
+      box-shadow: var(--shadow);
+    }
+
+    .intake {
+      overflow: hidden;
+    }
+
+    .panel-head {
+      padding: 18px;
+      color: var(--paper-2);
+      background: var(--ink);
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel-head p {
+      margin-bottom: 0;
+      color: rgba(255, 250, 240, 0.74);
+      font-size: 0.95rem;
+    }
+
+    .stamp {
+      flex: 0 0 auto;
+      padding: 8px 10px;
+      border: 1px solid rgba(255, 250, 240, 0.5);
+      border-radius: 50%;
+      font-size: 0.72rem;
+      font-weight: 800;
+      line-height: 1.05;
+      text-align: center;
+      transform: rotate(6deg);
+    }
+
+    .form-grid {
+      padding: 18px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    .label {
+      color: var(--ink);
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      padding: 11px 12px;
+      color: var(--ink);
+      background: #fffdf8;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 86px;
+      resize: vertical;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(15, 111, 99, 0.18);
+    }
+
+    .segmented {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .segmented input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .segmented label {
+      min-height: 38px;
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      padding: 8px 11px;
+      display: inline-flex;
+      align-items: center;
+      color: var(--muted);
+      background: #fffdf8;
+      font-family: "Trebuchet MS", Verdana, sans-serif;
+      font-size: 0.86rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .segmented input:checked + label {
+      color: var(--paper-2);
+      border-color: var(--ink);
+      background: var(--ink);
+    }
+
+    .checks {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .check {
+      min-height: 46px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #fffdf8;
+      font-family: "Trebuchet MS", Verdana, sans-serif;
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    .check input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--brand);
+    }
+
+    .form-actions {
+      grid-column: 1 / -1;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      padding-top: 4px;
+    }
+
+    .mini {
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .results {
+      margin-top: clamp(20px, 5vw, 54px);
+      display: grid;
+      grid-template-columns: minmax(320px, 0.85fr) minmax(0, 1.15fr);
+      gap: clamp(16px, 3vw, 28px);
+      align-items: start;
+    }
+
+    .scorecard {
+      position: sticky;
+      top: 18px;
+      overflow: hidden;
+    }
+
+    .score-top {
+      padding: 18px;
+      color: var(--paper-2);
+      background: var(--brand-dark);
+    }
+
+    .score-row {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-top: 10px;
+    }
+
+    .score {
+      font-size: clamp(4rem, 8vw, 7rem);
+      line-height: 0.88;
+      font-weight: 800;
+    }
+
+    .score-label {
+      max-width: 135px;
+      padding-bottom: 8px;
+      font-size: 0.84rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .meter {
+      height: 15px;
+      margin-top: 16px;
+      border: 1px solid rgba(255, 250, 240, 0.6);
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255, 250, 240, 0.18);
+    }
+
+    .meter span {
+      height: 100%;
+      width: var(--score, 54%);
+      display: block;
+      background: var(--mustard);
+      transition: width 420ms ease;
+    }
+
+    .score-body {
+      padding: 18px;
+    }
+
+    .fact-list {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .fact-list li {
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .fact-list strong {
+      text-align: right;
+    }
+
+    .profile {
+      margin-top: 14px;
+      padding: 16px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(135deg, rgba(212, 165, 45, 0.16), transparent 34%),
+        #fffdf8;
+    }
+
+    .profile-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      gap: 14px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+    }
+
+    .avatar {
+      width: 48px;
+      height: 48px;
+      flex: 0 0 auto;
+      border: 2px solid var(--ink);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: var(--paper-2);
+      background: var(--plum);
+      font-family: "Trebuchet MS", Verdana, sans-serif;
+      font-weight: 800;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 10px;
+    }
+
+    .chip,
+    .pill {
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      padding: 5px 8px;
+      display: inline-flex;
+      align-items: center;
+      background: var(--paper-2);
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 800;
+    }
+
+    .pill {
+      color: var(--ink);
+      background: rgba(212, 165, 45, 0.2);
+    }
+
+    .stack {
+      display: grid;
+      gap: 16px;
+    }
+
+    .section {
+      padding: 18px;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: start;
+      margin-bottom: 14px;
+    }
+
+    .section-head p {
+      margin-bottom: 0;
+      color: var(--muted);
+    }
+
+    .roadmap {
+      display: grid;
+      gap: 10px;
+      counter-reset: step;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 46px minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fffdf8;
+    }
+
+    .step::before {
+      counter-increment: step;
+      content: counter(step);
+      width: 34px;
+      height: 34px;
+      border: 2px solid var(--ink);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-family: "Trebuchet MS", Verdana, sans-serif;
+      font-weight: 800;
+      background: var(--mustard);
+    }
+
+    .step p {
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .tag {
+      min-width: max-content;
+      padding: 6px 8px;
+      border-radius: 999px;
+      color: var(--paper-2);
+      background: var(--blue);
+      font-family: "Trebuchet MS", Verdana, sans-serif;
+      font-size: 0.74rem;
+      font-weight: 800;
+    }
+
+    .recommendations {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .rec {
+      min-height: 205px;
+      padding: 14px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: #fffdf8;
+    }
+
+    .rec[data-kind="certificate"] {
+      border-top: 7px solid var(--brand);
+    }
+
+    .rec[data-kind="project"] {
+      border-top: 7px solid var(--clay);
+    }
+
+    .rec[data-kind="proof"] {
+      border-top: 7px solid var(--plum);
+    }
+
+    .rec p {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .rec-foot {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    .score-breakdown {
+      display: grid;
+      gap: 8px;
+      margin: 14px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .score-breakdown li {
+      display: grid;
+      grid-template-columns: minmax(92px, 1fr) minmax(90px, 1.25fr) 42px;
+      gap: 10px;
+      align-items: center;
+      color: var(--muted);
+      font-family: "Trebuchet MS", Verdana, sans-serif;
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .mini-meter {
+      height: 9px;
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(216, 203, 187, 0.44);
+    }
+
+    .mini-meter span {
+      display: block;
+      width: var(--width, 40%);
+      height: 100%;
+      background: var(--brand);
+    }
+
+    .finder-controls {
+      display: grid;
+      grid-template-columns: 1.2fr repeat(3, minmax(120px, 0.7fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .cert-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .cert-card {
+      padding: 14px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: #fffdf8;
+      display: grid;
+      gap: 10px;
+    }
+
+    .cert-card h3 {
+      margin-bottom: 2px;
+    }
+
+    .cert-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .cert-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      padding-top: 2px;
+    }
+
+    .text-link {
+      border: 0;
+      padding: 0;
+      color: var(--brand-dark);
+      background: transparent;
+      font-family: "Trebuchet MS", Verdana, sans-serif;
+      font-weight: 800;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+    }
+
+    .table th,
+    .table td {
+      padding: 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .table th {
+      color: var(--paper-2);
+      background: var(--ink);
+      font-family: "Trebuchet MS", Verdana, sans-serif;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+    }
+
+    .table tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .table-label {
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 800;
+    }
+
+    .growth {
+      margin-top: clamp(20px, 5vw, 54px);
+      padding: clamp(18px, 3vw, 28px) 0 12px;
+      border-top: 2px solid var(--ink);
+      display: grid;
+      grid-template-columns: 0.8fr 1.2fr;
+      gap: clamp(16px, 3vw, 28px);
+    }
+
+    .growth-list {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .growth-list li {
+      padding: 13px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: rgba(255, 250, 240, 0.72);
+    }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 20;
+      max-width: min(420px, calc(100vw - 36px));
+      padding: 12px 14px;
+      border: 2px solid var(--ink);
+      border-radius: var(--radius);
+      color: var(--paper-2);
+      background: var(--brand-dark);
+      box-shadow: 5px 5px 0 var(--ink);
+      transform: translateY(24px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .noscript {
+      margin: 18px 0;
+      padding: 14px;
+      border: 2px solid var(--bad);
+      border-radius: var(--radius);
+      background: #fff4ed;
+    }
+
+    .empty {
+      color: var(--muted);
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    @media (max-width: 980px) {
+      .masthead {
+        min-height: auto;
+      }
+
+      .shell,
+      .results,
+      .growth {
+        grid-template-columns: 1fr;
+      }
+
+      .scorecard {
+        position: static;
+      }
+
+      .recommendations {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .nav {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .nav-actions {
+        justify-content: stretch;
+      }
+
+      .nav-actions .btn,
+      .form-actions .btn {
+        width: 100%;
+      }
+
+      .hero-board,
+      .form-grid,
+      .checks {
+        grid-template-columns: 1fr;
+      }
+
+      .board-item {
+        border-right: 0;
+        border-bottom: 1px solid var(--ink);
+      }
+
+      .board-item:last-child {
+        border-bottom: 0;
+      }
+
+      .field.full {
+        grid-column: auto;
+      }
+
+      .step {
+        grid-template-columns: 42px minmax(0, 1fr);
+      }
+
+      .step .tag {
+        grid-column: 2;
+        width: max-content;
+      }
+
+      .table {
+        display: block;
+        overflow-x: auto;
+      }
+
+      .finder-controls,
+      .cert-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .score-breakdown li {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="masthead">
+      <nav class="nav" aria-label="Primary">
+        <div class="brand">
+          <span class="brand-mark">PP</span>
+          <span>ProofPath</span>
+        </div>
+        <div class="nav-actions">
+          <button class="btn" type="button" id="shareLinkBtn">Share link</button>
+          <a class="btn ghost" href="#growth">Growth plan</a>
+          <button class="btn clay" type="button" id="copyProfileBtn">Copy profile</button>
+        </div>
+      </nav>
+
+      <div class="shell">
+        <section class="hero" aria-labelledby="pageTitle">
+          <div>
+            <p class="eyebrow">Free student career launchpad</p>
+            <h1 id="pageTitle">Turn messy proof into an internship plan.</h1>
+            <p class="lede">Students add what they have done, choose a target role, and get a readiness score, proof profile, and next actions that are cheap, visible, and LinkedIn-ready.</p>
+          </div>
+
+          <div class="hero-board" aria-label="Product principles">
+            <div class="board-item">
+              <strong>0</strong>
+              <span>Backend required for the MVP</span>
+            </div>
+            <div class="board-item">
+              <strong>6</strong>
+              <span>Months of moat from proof data</span>
+            </div>
+            <div class="board-item">
+              <strong>1</strong>
+              <span>Shareable student status object</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel intake" aria-labelledby="formTitle">
+          <div class="panel-head">
+            <div>
+              <h2 id="formTitle">Build your proof profile</h2>
+              <p>Start with a quick self-audit. Nothing leaves this browser.</p>
+            </div>
+            <span class="stamp">MVP<br>v1</span>
+          </div>
+
+          <noscript>
+            <div class="noscript">
+              JavaScript is off, so the live score cannot run. You can still use the page as a planning template: list your proof, choose a role, and work through the roadmap below.
+            </div>
+          </noscript>
+
+          <form class="form-grid" id="profileForm">
+            <div class="field">
+              <label class="label" for="studentName">Name</label>
+              <input id="studentName" name="studentName" autocomplete="name" value="Aarav Mehta">
+            </div>
+
+            <div class="field">
+              <label class="label" for="college">College or city</label>
+              <input id="college" name="college" value="Mumbai, 2nd year">
+            </div>
+
+            <div class="field">
+              <label class="label" for="degree">Degree</label>
+              <select id="degree" name="degree">
+                <option>Commerce / BBA</option>
+                <option>Engineering / CS</option>
+                <option>Design / Media</option>
+                <option>Economics / Finance</option>
+                <option>Other</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label class="label" for="targetRole">Target role</label>
+              <select id="targetRole" name="targetRole">
+                <option value="marketing">Marketing internship</option>
+                <option value="data">Data analyst internship</option>
+                <option value="product">Product internship</option>
+                <option value="finance">Finance internship</option>
+                <option value="design">Design internship</option>
+              </select>
+            </div>
+
+            <div class="field full">
+              <span class="label">Current proof</span>
+              <div class="checks">
+                <label class="check"><input type="checkbox" name="proof" value="certificate" checked> 1+ certificate</label>
+                <label class="check"><input type="checkbox" name="proof" value="project"> Public project</label>
+                <label class="check"><input type="checkbox" name="proof" value="linkedin" checked> LinkedIn profile</label>
+                <label class="check"><input type="checkbox" name="proof" value="resume"> Resume draft</label>
+                <label class="check"><input type="checkbox" name="proof" value="internship"> Prior internship</label>
+                <label class="check"><input type="checkbox" name="proof" value="portfolio"> Portfolio link</label>
+              </div>
+            </div>
+
+            <div class="field full">
+              <span class="label">Weekly time</span>
+              <div class="segmented">
+                <input id="time1" type="radio" name="weeklyTime" value="3" checked>
+                <label for="time1">3 hrs</label>
+                <input id="time2" type="radio" name="weeklyTime" value="6">
+                <label for="time2">6 hrs</label>
+                <input id="time3" type="radio" name="weeklyTime" value="10">
+                <label for="time3">10+ hrs</label>
+              </div>
+            </div>
+
+            <div class="field full">
+              <label class="label" for="achievements">Raw achievements</label>
+              <textarea id="achievements" name="achievements">Completed Google Fundamentals of Digital Marketing, managed college fest Instagram, made a basic Excel dashboard.</textarea>
+            </div>
+
+            <div class="form-actions">
+              <button class="btn primary" type="submit">Generate plan</button>
+              <button class="btn" type="button" id="saveBtn">Save locally</button>
+              <button class="btn ghost" type="button" id="resetBtn">Reset sample</button>
+              <span class="mini" id="savedState">Unsaved demo profile</span>
+            </div>
+          </form>
+        </section>
+      </div>
+    </header>
+
+    <main>
+      <section class="results" id="results" aria-live="polite">
+        <aside class="panel scorecard" aria-labelledby="scoreTitle">
+          <div class="score-top">
+            <p class="eyebrow" style="margin-bottom: 10px; color: #f6df8d; border-color: rgba(246, 223, 141, 0.72); background: rgba(246, 223, 141, 0.12);">Readiness score</p>
+            <h2 id="scoreTitle">Shortlist signal</h2>
+            <div class="score-row">
+              <div class="score"><span id="scoreValue">54</span></div>
+              <div class="score-label" id="scoreBand">Promising, thin proof</div>
+            </div>
+            <div class="meter" aria-hidden="true"><span id="scoreMeter"></span></div>
+          </div>
+          <div class="score-body">
+            <ul class="fact-list">
+              <li><span>Target</span><strong id="factTarget">Marketing internship</strong></li>
+              <li><span>Fastest lift</span><strong id="factLift">Add a public campaign teardown</strong></li>
+              <li><span>Share angle</span><strong id="factAngle">Proof over claims</strong></li>
+            </ul>
+            <ul class="score-breakdown" id="scoreBreakdown" aria-label="Score breakdown"></ul>
+
+            <div class="profile" id="profileCard">
+              <div class="profile-head">
+                <div>
+                  <h3 id="profileName">Aarav Mehta</h3>
+                  <p class="mini" id="profileMeta">Mumbai, 2nd year - Commerce / BBA</p>
+                </div>
+                <div class="avatar" id="avatar">AM</div>
+              </div>
+              <p id="profileSummary">Marketing internship candidate with early certificates and campus social proof. Needs one visible project and a cleaner story.</p>
+              <div class="chips" id="profileChips"></div>
+            </div>
+          </div>
+        </aside>
+
+        <div class="stack">
+          <section class="panel section" aria-labelledby="roadmapTitle">
+            <div class="section-head">
+              <div>
+                <h2 id="roadmapTitle">Next 14 days</h2>
+                <p>Actions that create visible proof, not just private learning.</p>
+              </div>
+              <span class="pill" id="pacePill">3 hrs/week</span>
+            </div>
+            <div class="roadmap" id="roadmap"></div>
+          </section>
+
+          <section class="panel section" aria-labelledby="recTitle">
+            <div class="section-head">
+              <div>
+                <h2 id="recTitle">Recommended proof</h2>
+                <p>Certificate + project + post. That trio is harder to replace with a prompt.</p>
+              </div>
+            </div>
+            <div class="recommendations" id="recommendations"></div>
+          </section>
+
+          <section class="panel section" aria-labelledby="finderTitle">
+            <div class="section-head">
+              <div>
+                <h2 id="finderTitle">Certificate finder</h2>
+                <p>Seed list for launch. Filter it, ship it, then replace guesses with student outcome data.</p>
+              </div>
+              <span class="pill" id="certCount">0 matches</span>
+            </div>
+            <div class="finder-controls">
+              <input id="certSearch" type="search" placeholder="Search provider, skill, certificate">
+              <select id="certRole">
+                <option value="all">All roles</option>
+                <option value="marketing">Marketing</option>
+                <option value="data">Data</option>
+                <option value="product">Product</option>
+                <option value="finance">Finance</option>
+                <option value="design">Design</option>
+              </select>
+              <select id="certCost">
+                <option value="all">Any cost</option>
+                <option value="free">Free only</option>
+                <option value="cheap">Free/cheap</option>
+              </select>
+              <select id="certTime">
+                <option value="all">Any time</option>
+                <option value="short">Under 5 hrs</option>
+                <option value="weekend">Weekend</option>
+              </select>
+            </div>
+            <div class="cert-grid" id="certificateGrid"></div>
+          </section>
+
+          <section class="panel section" aria-labelledby="tierTitle">
+            <div class="section-head">
+              <div>
+                <h2 id="tierTitle">Starter certification tier list</h2>
+                <p>This is seed data. The product moat becomes student reviews, completion times, and internship outcomes.</p>
+              </div>
+            </div>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Track</th>
+                  <th>Free/cheap proof</th>
+                  <th>LinkedIn value</th>
+                  <th>Moat data to collect</th>
+                </tr>
+              </thead>
+              <tbody id="tierRows"></tbody>
+            </table>
+          </section>
+        </div>
+      </section>
+
+      <section class="growth" id="growth" aria-labelledby="growthTitle">
+        <div>
+          <p class="eyebrow">How this gets users</p>
+          <h2 id="growthTitle">Make the output a status object.</h2>
+          <p class="lede">The MVP should teach marketing by forcing distribution into the product: profiles, badges, tier lists, and campus comparisons.</p>
+        </div>
+        <ul class="growth-list">
+          <li><strong>Week 1:</strong> launch with 25 certificates and 5 target roles. Manually add student feedback from friends and college groups.</li>
+          <li><strong>Week 2:</strong> add public profile links and "copy my LinkedIn proof post." Every user becomes a tiny distribution channel.</li>
+          <li><strong>Week 3:</strong> add campus pages: top certificates at NMIMS, DU, VIT, SRCC, etc. This is your SEO and WhatsApp hook.</li>
+          <li><strong>Week 4:</strong> ask users whether a certificate helped them get interviews. Outcomes become the moat.</li>
+        </ul>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const roleData = {
+      marketing: {
+        label: "Marketing internship",
+        base: 22,
+        lift: "Add a public campaign teardown",
+        angle: "Proof over claims",
+        summary: "Marketing internship candidate with early certificates and campus social proof. Needs one visible project and a cleaner story.",
+        roadmap: [
+          ["Audit", "Rewrite LinkedIn headline around one target: growth, content, brand, or performance.", "30 min"],
+          ["Create", "Publish a teardown of a brand campaign with 3 insights and 1 improvement idea.", "2 hrs"],
+          ["Package", "Turn your best certificate + teardown into a pinned proof post.", "45 min"]
+        ],
+        recs: [
+          ["certificate", "Google Digital Marketing", "Free, recognizable, and broad enough for beginners. Add only after writing one applied takeaway.", "4-8 hrs"],
+          ["project", "Campus growth teardown", "Pick one college club or small business and write a simple acquisition plan.", "Weekend"],
+          ["proof", "LinkedIn proof post", "Show certificate, teardown link, and one metric you would track.", "20 min"]
+        ]
+      },
+      data: {
+        label: "Data analyst internship",
+        base: 24,
+        lift: "Publish a dashboard with a short readme",
+        angle: "Show the analysis path",
+        summary: "Data analyst candidate with basic learning proof. Needs a public dashboard and clearer tool stack.",
+        roadmap: [
+          ["Clean", "Choose one dataset and document the cleaning choices in plain English.", "1 hr"],
+          ["Build", "Create a small dashboard with 3 charts and 3 business recommendations.", "3 hrs"],
+          ["Share", "Post the dashboard with a before/after insight, not just screenshots.", "30 min"]
+        ],
+        recs: [
+          ["certificate", "Kaggle Intro to SQL or Pandas", "Fast, free, and practical. Pair it with one notebook.", "3-5 hrs"],
+          ["project", "Internship stipend dashboard", "Analyze stipends, roles, or locations from public listings.", "Weekend"],
+          ["proof", "One-page analysis memo", "Recruiters understand decisions faster than notebooks.", "45 min"]
+        ]
+      },
+      product: {
+        label: "Product internship",
+        base: 20,
+        lift: "Write a teardown of one app flow",
+        angle: "Think like a builder",
+        summary: "Product internship candidate with broad interest. Needs sharper user insight and product judgment proof.",
+        roadmap: [
+          ["Observe", "Interview 3 students about one painful workflow.", "1 hr"],
+          ["Teardown", "Map an app flow and identify one friction point.", "2 hrs"],
+          ["Spec", "Write a one-page PRD for a tiny fix with success metrics.", "90 min"]
+        ],
+        recs: [
+          ["certificate", "Product analytics mini-course", "Useful only if paired with an actual product teardown.", "4-6 hrs"],
+          ["project", "Student workflow PRD", "Pick attendance, notes, internships, or payments and write a tiny spec.", "Weekend"],
+          ["proof", "Before/after flow post", "A visual post can travel well in student circles.", "40 min"]
+        ]
+      },
+      finance: {
+        label: "Finance internship",
+        base: 23,
+        lift: "Build a simple valuation or market memo",
+        angle: "Numbers plus judgment",
+        summary: "Finance internship candidate with early coursework proof. Needs an applied model and a concise memo.",
+        roadmap: [
+          ["Model", "Recreate a simple company revenue and margin model.", "2 hrs"],
+          ["Explain", "Write a 300-word memo with assumptions and risks.", "1 hr"],
+          ["Package", "Add screenshots and a downloadable spreadsheet link.", "30 min"]
+        ],
+        recs: [
+          ["certificate", "Corporate finance fundamentals", "Brand matters, but applied models matter more.", "6-10 hrs"],
+          ["project", "One-company mini model", "Choose a business you actually understand and explain drivers.", "Weekend"],
+          ["proof", "Market memo", "Short, specific, and easier to review than a huge spreadsheet.", "45 min"]
+        ]
+      },
+      design: {
+        label: "Design internship",
+        base: 21,
+        lift: "Publish one case study with constraints",
+        angle: "Taste plus reasoning",
+        summary: "Design internship candidate with scattered proof. Needs a case study that explains decisions.",
+        roadmap: [
+          ["Select", "Pick one ugly student workflow and define the user problem.", "45 min"],
+          ["Redesign", "Create 3 key screens with states, not just a landing page.", "3 hrs"],
+          ["Narrate", "Write the case study: problem, constraints, decisions, tradeoffs.", "1 hr"]
+        ],
+        recs: [
+          ["certificate", "Figma basics", "Helpful only when the portfolio shows applied decisions.", "2-4 hrs"],
+          ["project", "Campus app redesign", "Redesign attendance, events, clubs, or placements.", "Weekend"],
+          ["proof", "Case study carousel", "Explain why, not just what it looks like.", "45 min"]
+        ]
+      }
+    };
+
+    const tierData = [
+      ["Marketing", "Google Digital Marketing, HubSpot Academy", "High for beginners", "Actual completion time, best module, internship outcome"],
+      ["Data", "Kaggle, freeCodeCamp, Microsoft Learn", "Medium-high with project", "Dashboard links, dataset quality, interview callbacks"],
+      ["Product", "Reforge snippets, Product School free events, analytics courses", "Medium unless applied", "Teardown quality, PRD examples, mentor reviews"],
+      ["Finance", "Coursera audit courses, CFI free resources, NSE modules where relevant", "Brand-sensitive", "Region, role fit, recruiter recognition"],
+      ["Design", "Figma Learn, Google UX audit mode, accessibility basics", "Low alone, high with portfolio", "Case study views, peer ratings, hiring feedback"]
+    ];
+
+    const certificateData = [
+      { role: "marketing", provider: "Google Skillshop", title: "Fundamentals of Digital Marketing", cost: "free", hours: 40, value: "High beginner signal", url: "https://skillshop.exceedlms.com/student/catalog/list?category_ids=7879&locale=en-GB", proofTip: "Publish a campaign teardown with 3 metrics you would track." },
+      { role: "marketing", provider: "HubSpot Academy", title: "Inbound Marketing Certification", cost: "free", hours: 5, value: "Recognizable marketing proof", url: "https://academy.hubspot.com/courses/inbound-marketing", proofTip: "Apply it to your college fest, club, or a local business." },
+      { role: "marketing", provider: "HubSpot Academy", title: "Social Media Marketing", cost: "free", hours: 4, value: "Good for content roles", url: "https://academy.hubspot.com/courses/social-media", proofTip: "Add a 7-day content calendar as the real proof." },
+      { role: "data", provider: "Kaggle Learn", title: "Intro to SQL", cost: "free", hours: 3, value: "Fast applied signal", url: "https://www.kaggle.com/learn/intro-to-sql", proofTip: "Pair it with a notebook answering 5 business questions." },
+      { role: "data", provider: "Kaggle Learn", title: "Pandas", cost: "free", hours: 4, value: "Useful if paired with a dataset", url: "https://www.kaggle.com/learn/pandas", proofTip: "Clean one messy dataset and explain your choices." },
+      { role: "data", provider: "Microsoft Learn", title: "Power BI learning paths", cost: "free", hours: 6, value: "Strong for analyst resumes", url: "https://learn.microsoft.com/training/powerplatform/power-bi", proofTip: "Build a public dashboard screenshot and short memo." },
+      { role: "product", provider: "Google Analytics Academy", title: "Google Analytics for Beginners", cost: "free", hours: 5, value: "Useful product analytics base", url: "https://analytics.google.com/analytics/academy/", proofTip: "Write how you would measure activation for one app." },
+      { role: "product", provider: "Great Learning Academy", title: "Product Management basics", cost: "free", hours: 2, value: "Low-medium unless applied", url: "https://www.mygreatlearning.com/academy/learn-for-free/courses/product-management", proofTip: "Attach a one-page PRD for a student problem." },
+      { role: "product", provider: "Mind the Product", title: "ProductTank talks and resources", cost: "free", hours: 2, value: "Good taste builder", url: "https://www.mindtheproduct.com/", proofTip: "Turn one talk into a product teardown post." },
+      { role: "finance", provider: "CFI", title: "Accounting Fundamentals", cost: "free", hours: 5, value: "Good finance foundation", url: "https://corporatefinanceinstitute.com/course/accounting-fundamentals/", proofTip: "Use it to explain one company's income statement." },
+      { role: "finance", provider: "Coursera audit", title: "Financial Markets", cost: "free", hours: 10, value: "Strong brand if completed", url: "https://www.coursera.org/learn/financial-markets-global", proofTip: "Write a 300-word market memo after each module." },
+      { role: "finance", provider: "NSE Academy", title: "Market basics modules", cost: "cheap", hours: 8, value: "India-relevant signal", url: "https://www.nseindia.com/learn/overview-about-nse-academy", proofTip: "Compare two sectors using public data." },
+      { role: "design", provider: "Figma Learn", title: "Figma for beginners", cost: "free", hours: 3, value: "Tool proof only", url: "https://help.figma.com/hc/en-us/categories/360002042553-Learn-design", proofTip: "Publish a 3-screen redesign with before and after." },
+      { role: "design", provider: "Google", title: "Material Design foundations", cost: "free", hours: 4, value: "Good UI vocabulary", url: "https://m3.material.io/foundations", proofTip: "Annotate a redesign with accessibility and layout decisions." },
+      { role: "design", provider: "Deque University", title: "Accessibility fundamentals", cost: "free", hours: 3, value: "Differentiated beginner signal", url: "https://dequeuniversity.com/curriculum/online-classes", proofTip: "Audit one website and post 5 fixes." }
+    ];
+
+    const PROOF_WEIGHTS = { certificate: 10, project: 18, linkedin: 8, resume: 9, internship: 17, portfolio: 15 };
+    const PROOF_MAX = Object.values(PROOF_WEIGHTS).reduce((a, b) => a + b, 0);
+    const PROOF_LABELS = { certificate: "Certificate", project: "Public project", linkedin: "LinkedIn", resume: "Resume", internship: "Prior internship", portfolio: "Portfolio" };
+    const certProgressKey = "proofpath-cert-progress";
+
+    function getCompleted() {
+      try { return new Set(JSON.parse(localStorage.getItem(certProgressKey)) || []); }
+      catch (error) { return new Set(); }
+    }
+
+    function setCompleted(set) {
+      localStorage.setItem(certProgressKey, JSON.stringify([...set]));
+    }
+
+    const form = document.querySelector("#profileForm");
+    const saveBtn = document.querySelector("#saveBtn");
+    const resetBtn = document.querySelector("#resetBtn");
+    const copyProfileBtn = document.querySelector("#copyProfileBtn");
+    const shareLinkBtn = document.querySelector("#shareLinkBtn");
+    const certSearch = document.querySelector("#certSearch");
+    const certRole = document.querySelector("#certRole");
+    const certCost = document.querySelector("#certCost");
+    const certTime = document.querySelector("#certTime");
+    const toast = document.querySelector("#toast");
+    const storageKey = "proofpath-demo-profile";
+
+    function getProfile() {
+      const data = new FormData(form);
+      return {
+        name: data.get("studentName") || "Student",
+        college: data.get("college") || "Campus",
+        degree: data.get("degree") || "Student",
+        role: data.get("targetRole") || "marketing",
+        proofs: data.getAll("proof"),
+        weeklyTime: Number(data.get("weeklyTime") || 3),
+        achievements: data.get("achievements") || ""
+      };
+    }
+
+    function proofScoreOf(profile) {
+      return profile.proofs.reduce((sum, item) => sum + (PROOF_WEIGHTS[item] || 0), 0);
+    }
+
+    function storyScoreOf(profile) {
+      return Math.min(12, Math.floor(profile.achievements.trim().length / 28));
+    }
+
+    function paceScoreOf(profile) {
+      return profile.weeklyTime >= 10 ? 10 : profile.weeklyTime >= 6 ? 7 : 4;
+    }
+
+    function calculateScore(profile) {
+      const role = roleData[profile.role];
+      return Math.min(96, role.base + proofScoreOf(profile) + storyScoreOf(profile) + paceScoreOf(profile));
+    }
+
+    function scoreDetails(profile) {
+      return [
+        ["Role fit", roleData[profile.role].base, 24],
+        ["Proof", proofScoreOf(profile), PROOF_MAX],
+        ["Story", storyScoreOf(profile), 12],
+        ["Pace", paceScoreOf(profile), 10]
+      ];
+    }
+
+    function scoreBand(score) {
+      if (score >= 78) return "Strong, now distribute";
+      if (score >= 60) return "Credible, needs polish";
+      if (score >= 42) return "Promising, thin proof";
+      return "Early, build proof";
+    }
+
+    function initials(name) {
+      return name
+        .split(" ")
+        .filter(Boolean)
+        .slice(0, 2)
+        .map(part => part[0].toUpperCase())
+        .join("") || "ST";
+    }
+
+    // Ordered by hiring impact: the first proof a student is missing is their biggest gap.
+    function topGaps(profile) {
+      const order = ["project", "internship", "portfolio", "resume", "certificate", "linkedin"];
+      return order.filter(item => !profile.proofs.includes(item));
+    }
+
+    function liftFor(profile) {
+      const role = roleData[profile.role];
+      const actions = {
+        project: role.lift,
+        internship: "Apply to 5 small or startup internships this week",
+        portfolio: "Publish a portfolio link with 2 finished pieces",
+        resume: "Make a one-page role-specific resume",
+        certificate: "Finish one free certificate and post the proof",
+        linkedin: "Create a LinkedIn profile and pin your best proof"
+      };
+      const gap = topGaps(profile)[0];
+      return gap ? actions[gap] : "Ask 3 seniors for feedback, then start applying";
+    }
+
+    function dynamicSummary(profile) {
+      const role = roleData[profile.role];
+      const have = profile.proofs.map(item => PROOF_LABELS[item]).join(", ") || "no proof yet";
+      const gaps = topGaps(profile).slice(0, 2).map(item => PROOF_LABELS[item].toLowerCase());
+      const gapLine = gaps.length
+        ? `Biggest gap: ${gaps.join(" and ")}.`
+        : "Strong proof stack — now focus on distribution.";
+      return `${role.label} candidate. You have ${have}. ${gapLine}`;
+    }
+
+    function render() {
+      const profile = getProfile();
+      const role = roleData[profile.role];
+      const score = calculateScore(profile);
+
+      document.querySelector("#scoreValue").textContent = score;
+      document.querySelector("#scoreBand").textContent = scoreBand(score);
+      document.querySelector("#scoreMeter").style.width = score + "%";
+      document.querySelector("#factTarget").textContent = role.label;
+      document.querySelector("#factLift").textContent = liftFor(profile);
+      document.querySelector("#factAngle").textContent = role.angle;
+      document.querySelector("#profileName").textContent = profile.name;
+      document.querySelector("#profileMeta").textContent = `${profile.college} - ${profile.degree}`;
+      document.querySelector("#avatar").textContent = initials(profile.name);
+      document.querySelector("#profileSummary").textContent = dynamicSummary(profile);
+      document.querySelector("#pacePill").textContent = `${profile.weeklyTime}+ hrs/week`;
+
+      const breakdown = document.querySelector("#scoreBreakdown");
+      breakdown.innerHTML = "";
+      scoreDetails(profile).forEach(([label, value, max]) => {
+        const row = document.createElement("li");
+        const width = Math.min(100, Math.round((value / max) * 100));
+        row.innerHTML = `<span>${label}</span><span class="mini-meter"><span style="--width:${width}%"></span></span><strong>${value}</strong>`;
+        breakdown.appendChild(row);
+      });
+
+      const chips = document.querySelector("#profileChips");
+      chips.innerHTML = "";
+      const chipItems = profile.proofs.length ? profile.proofs : ["No proof yet"];
+      chipItems.forEach(item => {
+        const chip = document.createElement("span");
+        chip.className = "chip";
+        chip.textContent = PROOF_LABELS[item] || item;
+        chips.appendChild(chip);
+      });
+
+      const roadmap = document.querySelector("#roadmap");
+      roadmap.innerHTML = "";
+      role.roadmap.forEach(item => {
+        const step = document.createElement("article");
+        step.className = "step";
+        step.innerHTML = `<div><h3>${item[0]}</h3><p>${item[1]}</p></div><span class="tag">${item[2]}</span>`;
+        roadmap.appendChild(step);
+      });
+
+      const recs = document.querySelector("#recommendations");
+      recs.innerHTML = "";
+      role.recs.forEach(item => {
+        const rec = document.createElement("article");
+        rec.className = "rec";
+        rec.dataset.kind = item[0];
+        rec.innerHTML = `<div><span class="chip">${item[0]}</span><h3>${item[1]}</h3><p>${item[2]}</p></div><div class="rec-foot"><span class="table-label">Effort</span><strong>${item[3]}</strong></div>`;
+        recs.appendChild(rec);
+      });
+
+      renderCertificates();
+    }
+
+    function renderTierRows() {
+      const body = document.querySelector("#tierRows");
+      body.innerHTML = "";
+      tierData.forEach(row => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = row.map((cell, index) => `<td>${index === 0 ? `<strong>${cell}</strong>` : cell}</td>`).join("");
+        body.appendChild(tr);
+      });
+    }
+
+    function linkedinTier(value) {
+      if (/high|strong/i.test(value)) return 3;
+      if (/medium/i.test(value)) return 2;
+      return 1;
+    }
+
+    function tierLabel(tier) {
+      return tier === 3 ? "High LinkedIn value" : tier === 2 ? "Medium LinkedIn value" : "Low alone, high with proof";
+    }
+
+    // Rank by relevance to the student's target role, then LinkedIn value, then lowest effort (quickest win).
+    function certRank(cert, targetRole) {
+      return (cert.role === targetRole ? 100 : 0) + linkedinTier(cert.value) * 10 - cert.hours * 0.5;
+    }
+
+    function renderCertificates() {
+      const query = certSearch.value.trim().toLowerCase();
+      const role = certRole.value;
+      const cost = certCost.value;
+      const time = certTime.value;
+      const targetRole = form.targetRole.value;
+      const completed = getCompleted();
+
+      const matches = certificateData.filter(cert => {
+        const text = `${cert.provider} ${cert.title} ${cert.value} ${cert.proofTip}`.toLowerCase();
+        const roleOk = role === "all" || cert.role === role;
+        const costOk = cost === "all"
+          || (cost === "free" && cert.cost === "free")
+          || (cost === "cheap" && ["free", "cheap"].includes(cert.cost));
+        const timeOk = time === "all" || (time === "short" && cert.hours <= 5) || (time === "weekend" && cert.hours <= 10);
+        return roleOk && costOk && timeOk && (!query || text.includes(query));
+      }).sort((a, b) => certRank(b, targetRole) - certRank(a, targetRole));
+
+      const grid = document.querySelector("#certificateGrid");
+      grid.innerHTML = "";
+      const doneCount = certificateData.filter(cert => completed.has(cert.title)).length;
+      const doneNote = doneCount ? ` · ${doneCount} done` : "";
+      document.querySelector("#certCount").textContent = `${matches.length} match${matches.length === 1 ? "" : "es"}${doneNote}`;
+
+      if (!matches.length) {
+        grid.innerHTML = `<p class="empty">No matches yet. This is a good signal to add that certificate to the seed database.</p>`;
+        return;
+      }
+
+      matches.forEach((cert, index) => {
+        const done = completed.has(cert.title);
+        const card = document.createElement("article");
+        card.className = "cert-card";
+        card.innerHTML = `
+          <div>
+            <div class="cert-meta">
+              ${index === 0 ? `<span class="pill">Top pick</span>` : ""}
+              <span class="chip">${cert.provider}</span>
+              <span class="chip">${cert.cost}</span>
+              <span class="chip">${cert.hours} hrs</span>
+              ${done ? `<span class="pill">&#10003; Completed</span>` : ""}
+            </div>
+            <h3>${cert.title}</h3>
+            <p>${cert.value} &middot; ${tierLabel(linkedinTier(cert.value))}</p>
+          </div>
+          <p class="mini">Proof to create: ${cert.proofTip}</p>
+          <div class="cert-actions">
+            <a class="btn ghost" href="${cert.url}" target="_blank" rel="noreferrer">Open</a>
+            <button class="text-link" type="button" data-cert="${cert.title}">Copy proof idea</button>
+            <button class="text-link" type="button" data-done="${cert.title}">${done ? "Mark not done" : "Mark completed"}</button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      window.clearTimeout(showToast.timer);
+      showToast.timer = window.setTimeout(() => toast.classList.remove("show"), 2200);
+    }
+
+    function saveProfile() {
+      localStorage.setItem(storageKey, JSON.stringify(getProfile()));
+      document.querySelector("#savedState").textContent = "Saved in this browser";
+      showToast("Profile saved locally.");
+    }
+
+    function encodeProfile(profile) {
+      return btoa(unescape(encodeURIComponent(JSON.stringify(profile))));
+    }
+
+    function decodeProfile(value) {
+      return JSON.parse(decodeURIComponent(escape(atob(value))));
+    }
+
+    function applyProfile(profile) {
+      form.studentName.value = profile.name || "";
+      form.college.value = profile.college || "";
+      form.degree.value = profile.degree || "Commerce / BBA";
+      form.targetRole.value = profile.role || "marketing";
+      form.achievements.value = profile.achievements || "";
+      form.querySelectorAll('input[name="proof"]').forEach(input => {
+        input.checked = (profile.proofs || []).includes(input.value);
+      });
+      const time = form.querySelector(`input[name="weeklyTime"][value="${profile.weeklyTime || 3}"]`);
+      if (time) time.checked = true;
+    }
+
+    function loadProfile() {
+      const shared = new URLSearchParams(window.location.search).get("p");
+      if (shared) {
+        try {
+          applyProfile(decodeProfile(shared));
+          document.querySelector("#savedState").textContent = "Loaded shared profile";
+          return;
+        } catch (error) {
+          showToast("Shared link could not be read.");
+        }
+      }
+
+      const saved = localStorage.getItem(storageKey);
+      if (!saved) return;
+      try {
+        applyProfile(JSON.parse(saved));
+        document.querySelector("#savedState").textContent = "Loaded saved profile";
+      } catch (error) {
+        localStorage.removeItem(storageKey);
+      }
+    }
+
+    function resetSample() {
+      localStorage.removeItem(storageKey);
+      form.reset();
+      document.querySelector("#savedState").textContent = "Unsaved demo profile";
+      render();
+      showToast("Sample restored.");
+    }
+
+    async function copyProfile() {
+      const profile = getProfile();
+      const role = roleData[profile.role];
+      const score = calculateScore(profile);
+      const text = `${profile.name} - ${role.label}\nReadiness: ${score}/100 (${scoreBand(score)})\nProof: ${profile.proofs.join(", ") || "starting now"}\nNext move: ${role.lift}\nBuilt with ProofPath`;
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast("Profile copied for LinkedIn or WhatsApp.");
+      } catch (error) {
+        showToast("Copy failed. Select the profile text manually.");
+      }
+    }
+
+    async function shareProfileLink() {
+      const encoded = encodeProfile(getProfile());
+      const base = window.location.origin && window.location.origin !== "null"
+        ? `${window.location.origin}${window.location.pathname}`
+        : window.location.href.split("?")[0].split("#")[0];
+      const url = `${base}?p=${encoded}`;
+      try {
+        await navigator.clipboard.writeText(url);
+        showToast("Share link copied.");
+      } catch (error) {
+        showToast("Could not copy link in this browser.");
+      }
+    }
+
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+      render();
+      document.querySelector("#results").scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    form.addEventListener("input", render);
+    saveBtn.addEventListener("click", saveProfile);
+    resetBtn.addEventListener("click", resetSample);
+    copyProfileBtn.addEventListener("click", copyProfile);
+    shareLinkBtn.addEventListener("click", shareProfileLink);
+    [certSearch, certRole, certCost, certTime].forEach(control => {
+      control.addEventListener("input", renderCertificates);
+    });
+    form.targetRole.addEventListener("change", () => {
+      certRole.value = form.targetRole.value;
+      renderCertificates();
+    });
+
+    document.querySelector("#certificateGrid").addEventListener("click", event => {
+      const doneBtn = event.target.closest("[data-done]");
+      if (doneBtn) {
+        const completed = getCompleted();
+        const title = doneBtn.dataset.done;
+        if (completed.has(title)) {
+          completed.delete(title);
+          showToast("Marked as not done.");
+        } else {
+          completed.add(title);
+          showToast("Nice - logged as completed.");
+        }
+        setCompleted(completed);
+        renderCertificates();
+        return;
+      }
+
+      const copyBtn = event.target.closest("[data-cert]");
+      if (!copyBtn) return;
+      const cert = certificateData.find(item => item.title === copyBtn.dataset.cert);
+      if (!cert) return;
+      navigator.clipboard.writeText(`${cert.title}: ${cert.proofTip}`).then(
+        () => showToast("Proof idea copied."),
+        () => showToast("Copy failed in this browser.")
+      );
+    });
+
+    renderTierRows();
+    loadProfile();
+    certRole.value = form.targetRole.value;
+    render();
+  </script>
+</body>
+</html>
