@@ -1171,9 +1171,9 @@
                 <option value="design">Design</option>
               </select>
               <select id="certCost">
-                <option value="all">Any cost</option>
+                <option value="all">Any cost (incl. paid)</option>
                 <option value="free">Free only</option>
-                <option value="cheap">Free/cheap</option>
+                <option value="cheap">Free or cheap</option>
               </select>
               <select id="certTime">
                 <option value="all">Any time</option>
@@ -1364,22 +1364,58 @@
       ["Design", "Figma Learn, Material Design, accessibility basics", "Low alone, high with portfolio", "A 3-screen redesign case study explaining your decisions"]
     ];
 
+    /* Certificate catalog. hours/priceNote are best-effort estimates that change over
+       time - treat them as guidance, not contracts. cost: free | cheap | paid. */
     const certificateData = [
-      { role: "marketing", provider: "Google Skillshop", title: "Fundamentals of Digital Marketing", cost: "free", hours: 40, value: "High beginner signal", url: "https://skillshop.exceedlms.com/student/catalog/list?category_ids=7879&locale=en-GB", proofTip: "Publish a campaign teardown with 3 metrics you would track." },
-      { role: "marketing", provider: "HubSpot Academy", title: "Inbound Marketing Certification", cost: "free", hours: 5, value: "Recognizable marketing proof", url: "https://academy.hubspot.com/courses/inbound-marketing", proofTip: "Apply it to your college fest, club, or a local business." },
-      { role: "marketing", provider: "HubSpot Academy", title: "Social Media Marketing", cost: "free", hours: 4, value: "Good for content roles", url: "https://academy.hubspot.com/courses/social-media", proofTip: "Add a 7-day content calendar as the real proof." },
-      { role: "data", provider: "Kaggle Learn", title: "Intro to SQL", cost: "free", hours: 3, value: "Fast applied signal", url: "https://www.kaggle.com/learn/intro-to-sql", proofTip: "Pair it with a notebook answering 5 business questions." },
-      { role: "data", provider: "Kaggle Learn", title: "Pandas", cost: "free", hours: 4, value: "Useful if paired with a dataset", url: "https://www.kaggle.com/learn/pandas", proofTip: "Clean one messy dataset and explain your choices." },
-      { role: "data", provider: "Microsoft Learn", title: "Power BI learning paths", cost: "free", hours: 6, value: "Strong for analyst resumes", url: "https://learn.microsoft.com/training/powerplatform/power-bi", proofTip: "Build a public dashboard screenshot and short memo." },
-      { role: "product", provider: "Google Analytics Academy", title: "Google Analytics for Beginners", cost: "free", hours: 5, value: "Useful product analytics base", url: "https://analytics.google.com/analytics/academy/", proofTip: "Write how you would measure activation for one app." },
-      { role: "product", provider: "Great Learning Academy", title: "Product Management basics", cost: "free", hours: 2, value: "Low-medium unless applied", url: "https://www.mygreatlearning.com/academy/learn-for-free/courses/product-management", proofTip: "Attach a one-page PRD for a student problem." },
-      { role: "product", provider: "Mind the Product", title: "ProductTank talks and resources", cost: "free", hours: 2, value: "Good taste builder", url: "https://www.mindtheproduct.com/", proofTip: "Turn one talk into a product teardown post." },
-      { role: "finance", provider: "CFI", title: "Accounting Fundamentals", cost: "free", hours: 5, value: "Good finance foundation", url: "https://corporatefinanceinstitute.com/course/accounting-fundamentals/", proofTip: "Use it to explain one company's income statement." },
-      { role: "finance", provider: "Coursera audit", title: "Financial Markets", cost: "free", hours: 10, value: "Strong brand if completed", url: "https://www.coursera.org/learn/financial-markets-global", proofTip: "Write a 300-word market memo after each module." },
-      { role: "finance", provider: "NSE Academy", title: "Market basics modules", cost: "cheap", hours: 8, value: "India-relevant signal", url: "https://www.nseindia.com/learn/overview-about-nse-academy", proofTip: "Compare two sectors using public data." },
-      { role: "design", provider: "Figma Learn", title: "Figma for beginners", cost: "free", hours: 3, value: "Tool proof only", url: "https://help.figma.com/hc/en-us/categories/360002042553-Learn-design", proofTip: "Publish a 3-screen redesign with before and after." },
-      { role: "design", provider: "Google", title: "Material Design foundations", cost: "free", hours: 4, value: "Good UI vocabulary", url: "https://m3.material.io/foundations", proofTip: "Annotate a redesign with accessibility and layout decisions." },
-      { role: "design", provider: "Deque University", title: "Accessibility fundamentals", cost: "free", hours: 3, value: "Differentiated beginner signal", url: "https://dequeuniversity.com/curriculum/online-classes", proofTip: "Audit one website and post 5 fixes." }
+      // ---------- MARKETING ----------
+      { role: "marketing", provider: "HubSpot Academy", title: "Digital Marketing Certification", cost: "free", priceNote: "Free", hours: 5, level: "Beginner", certType: "Certificate", recognized: true, subjects: ["SEO", "Content", "Social media", "Email", "Analytics"], value: "High beginner signal", url: "https://academy.hubspot.com/courses/digital-marketing", proofTip: "Apply it to your college fest or a local business and post the campaign." },
+      { role: "marketing", provider: "HubSpot Academy", title: "Inbound Marketing Certification", cost: "free", priceNote: "Free", hours: 3, level: "Beginner", certType: "Certificate", recognized: true, subjects: ["Inbound", "Funnels", "Lead nurturing", "Content"], value: "Recognizable marketing proof", url: "https://academy.hubspot.com/courses/inbound-marketing", proofTip: "Map an inbound funnel for one product and share it." },
+      { role: "marketing", provider: "HubSpot Academy", title: "Social Media Marketing", cost: "free", priceNote: "Free", hours: 6, level: "Beginner", certType: "Certificate", recognized: true, subjects: ["Strategy", "Content", "Listening", "ROI"], value: "Good for content roles", url: "https://academy.hubspot.com/courses/social-media", proofTip: "Build a 7-day content calendar as the real proof." },
+      { role: "marketing", provider: "HubSpot Academy", title: "Email Marketing Certification", cost: "free", priceNote: "Free", hours: 3, level: "Beginner", certType: "Certificate", recognized: true, subjects: ["Segmentation", "Automation", "Deliverability"], value: "Niche but practical", url: "https://academy.hubspot.com/courses/email-marketing", proofTip: "Write a 3-email welcome sequence for a fake brand." },
+      { role: "marketing", provider: "HubSpot Academy", title: "SEO Certification", cost: "free", priceNote: "Free", hours: 4, level: "Beginner", certType: "Certificate", recognized: true, subjects: ["Keyword research", "On-page SEO", "Link building"], value: "Good SEO foundation", url: "https://academy.hubspot.com/courses/seo", proofTip: "Do a mini SEO audit of one site and post 5 fixes." },
+      { role: "marketing", provider: "Semrush Academy", title: "SEO Fundamentals", cost: "free", priceNote: "Free - never expires", hours: 4, level: "Beginner", certType: "Certificate", recognized: true, subjects: ["SEO", "Keyword research", "Technical SEO", "Audits"], value: "Strong free SEO credential", url: "https://www.semrush.com/academy/", proofTip: "Run a keyword gap analysis for two competitors." },
+      { role: "marketing", provider: "Google Skillshop", title: "Google Ads Search Certification", cost: "free", priceNote: "Free", hours: 4, level: "Beginner", certType: "Certificate", recognized: true, subjects: ["Search ads", "Bidding", "Keywords", "Optimization"], value: "High recruiter recognition", url: "https://skillshop.exceedlms.com/", proofTip: "Plan a sample search campaign with budget and keywords." },
+      { role: "marketing", provider: "Google / Coursera", title: "Google Digital Marketing & E-commerce Certificate", cost: "paid", priceNote: "Free to audit; ~$49/mo for cert", hours: 120, level: "Beginner", certType: "Professional Certificate", recognized: true, subjects: ["Foundations", "Ads", "SEO", "Email", "Analytics", "E-commerce"], value: "Flagship recognized cert", url: "https://www.coursera.org/professional-certificates/google-digital-marketing-ecommerce", proofTip: "Use the capstone store project as a portfolio piece." },
+      { role: "marketing", provider: "Meta / Coursera", title: "Meta Social Media Marketing Certificate", cost: "paid", priceNote: "Free to audit; ~$49/mo for cert", hours: 100, level: "Beginner", certType: "Professional Certificate", recognized: true, subjects: ["FB/IG ads", "Campaigns", "Audiences", "Creative"], value: "Strong for paid-social roles", url: "https://www.coursera.org/professional-certificates/facebook-social-media-marketing", proofTip: "Build a sample paid-social plan for a student brand." },
+
+      // ---------- DATA ----------
+      { role: "data", provider: "Kaggle Learn", title: "Intro to SQL", cost: "free", priceNote: "Free", hours: 3, level: "Beginner", certType: "Course certificate", recognized: false, subjects: ["SQL", "Joins", "Aggregations"], value: "Fast applied signal", url: "https://www.kaggle.com/learn/intro-to-sql", proofTip: "Answer 5 business questions in one public notebook." },
+      { role: "data", provider: "Kaggle Learn", title: "Pandas", cost: "free", priceNote: "Free", hours: 4, level: "Beginner", certType: "Course certificate", recognized: false, subjects: ["Pandas", "Data cleaning", "DataFrames"], value: "Core data skill", url: "https://www.kaggle.com/learn/pandas", proofTip: "Clean one messy dataset and explain your choices." },
+      { role: "data", provider: "Kaggle Learn", title: "Python", cost: "free", priceNote: "Free", hours: 5, level: "Beginner", certType: "Course certificate", recognized: false, subjects: ["Python", "Functions", "Data types"], value: "Foundational", url: "https://www.kaggle.com/learn/python", proofTip: "Build a tiny script that analyses something you care about." },
+      { role: "data", provider: "Kaggle Learn", title: "Data Visualization", cost: "free", priceNote: "Free", hours: 4, level: "Beginner", certType: "Course certificate", recognized: false, subjects: ["Seaborn", "Charts", "EDA"], value: "Good for storytelling", url: "https://www.kaggle.com/learn/data-visualization", proofTip: "Turn one dataset into 3 charts with a takeaway each." },
+      { role: "data", provider: "Microsoft Learn", title: "Power BI Data Analyst (PL-300 paths)", cost: "free", priceNote: "Training free; exam paid", hours: 10, level: "Intermediate", certType: "Learning path", recognized: true, subjects: ["Power BI", "DAX", "Modeling", "Dashboards"], value: "Strong for analyst resumes", url: "https://learn.microsoft.com/training/powerplatform/power-bi", proofTip: "Publish a public dashboard with a short readme." },
+      { role: "data", provider: "Microsoft Learn", title: "Azure Data Fundamentals (DP-900)", cost: "cheap", priceNote: "Training free; exam ~$99", hours: 8, level: "Beginner", certType: "Certification", recognized: true, subjects: ["Cloud data", "Relational/NoSQL", "Analytics"], value: "Recognized cloud-data badge", url: "https://learn.microsoft.com/credentials/certifications/azure-data-fundamentals/", proofTip: "Summarise the data concepts in one explainer post." },
+      { role: "data", provider: "freeCodeCamp", title: "Data Analysis with Python (Certification)", cost: "free", priceNote: "Free", hours: 30, level: "Beginner", certType: "Certification", recognized: true, subjects: ["NumPy", "Pandas", "Matplotlib", "Reading data"], value: "Project-based and free", url: "https://www.freecodecamp.org/learn/data-analysis-with-python/", proofTip: "Ship the required projects to GitHub with notes." },
+      { role: "data", provider: "freeCodeCamp", title: "Relational Database (SQL)", cost: "free", priceNote: "Free", hours: 20, level: "Beginner", certType: "Certification", recognized: true, subjects: ["SQL", "PostgreSQL", "Bash", "Git"], value: "Hands-on SQL", url: "https://www.freecodecamp.org/learn/relational-database/", proofTip: "Design and query a small database, push it public." },
+      { role: "data", provider: "Tableau", title: "Tableau Public Training", cost: "free", priceNote: "Free", hours: 6, level: "Beginner", certType: "eLearning", recognized: true, subjects: ["Dashboards", "Visualization", "Storytelling"], value: "Good viz portfolio tool", url: "https://public.tableau.com/app/learn", proofTip: "Publish one interactive dashboard on Tableau Public." },
+      { role: "data", provider: "Google / Coursera", title: "Google Data Analytics Certificate", cost: "paid", priceNote: "Free to audit; ~$49/mo for cert", hours: 180, level: "Beginner", certType: "Professional Certificate", recognized: true, subjects: ["Spreadsheets", "SQL", "Tableau", "R", "Cleaning"], value: "Flagship recognized cert", url: "https://www.coursera.org/professional-certificates/google-data-analytics", proofTip: "Use the capstone case study as portfolio proof." },
+
+      // ---------- PRODUCT ----------
+      { role: "product", provider: "Amplitude Academy", title: "Amplitude Analysis Expert Certification", cost: "free", priceNote: "Free (promo codes common)", hours: 4, level: "Beginner", certType: "Badge (Credly)", recognized: true, subjects: ["Product analytics", "Funnels", "Retention", "Cohorts"], value: "Real product-analytics proof", url: "https://academy.amplitude.com/", proofTip: "Analyse a funnel and write 3 product recommendations." },
+      { role: "product", provider: "Pendo + Mind the Product", title: "Product Analytics Certification", cost: "free", priceNote: "Free", hours: 3, level: "Beginner", certType: "Badge (Credly)", recognized: true, subjects: ["Analytics strategy", "Metrics", "Data-driven org"], value: "Solid PM signal", url: "https://www.pendo.io/product-analytics-certification/", proofTip: "Define the North Star metric for one app you use." },
+      { role: "product", provider: "Google Analytics Academy", title: "Google Analytics (GA4) for Beginners", cost: "free", priceNote: "Free", hours: 5, level: "Beginner", certType: "Course", recognized: true, subjects: ["GA4", "Events", "Reports", "Metrics"], value: "Useful product-analytics base", url: "https://analytics.google.com/analytics/academy/", proofTip: "Explain how you would measure activation for one product." },
+      { role: "product", provider: "Great Learning Academy", title: "Product Management Basics", cost: "free", priceNote: "Free", hours: 2, level: "Beginner", certType: "Course certificate", recognized: false, subjects: ["PM fundamentals", "Roadmaps", "Lifecycle"], value: "Low-medium unless applied", url: "https://www.mygreatlearning.com/academy/learn-for-free/courses/product-management", proofTip: "Attach a one-page PRD for a student problem." },
+      { role: "product", provider: "Mind the Product", title: "ProductTank Talks & Resources", cost: "free", priceNote: "Free", hours: 2, level: "Beginner", certType: "Resource", recognized: false, subjects: ["Product thinking", "Discovery", "Case studies"], value: "Good taste builder", url: "https://www.mindtheproduct.com/", proofTip: "Turn one talk into a product teardown post." },
+      { role: "product", provider: "UVA / Coursera", title: "Digital Product Management", cost: "paid", priceNote: "Free to audit; cert paid", hours: 25, level: "Intermediate", certType: "Course certificate", recognized: true, subjects: ["Agile", "MVP", "Metrics", "Strategy"], value: "Credible PM brand", url: "https://www.coursera.org/learn/uva-darden-digital-product-management", proofTip: "Write an MVP plan with success metrics for one idea." },
+
+      // ---------- FINANCE ----------
+      { role: "finance", provider: "CFI", title: "Accounting Fundamentals", cost: "free", priceNote: "Free", hours: 5, level: "Beginner", certType: "Course", recognized: true, subjects: ["Accounting", "Income statement", "Balance sheet"], value: "Good finance foundation", url: "https://corporatefinanceinstitute.com/course/accounting-fundamentals/", proofTip: "Explain one company's income statement in a post." },
+      { role: "finance", provider: "CFI", title: "Introduction to Corporate Finance", cost: "free", priceNote: "Free", hours: 3, level: "Beginner", certType: "Course", recognized: true, subjects: ["Corporate finance", "Valuation basics", "Capital"], value: "Clear fundamentals", url: "https://corporatefinanceinstitute.com/course/introduction-corporate-finance/", proofTip: "Summarise how one firm raises and uses capital." },
+      { role: "finance", provider: "Yale / Coursera", title: "Financial Markets (Robert Shiller)", cost: "free", priceNote: "Free to audit", hours: 33, level: "Beginner", certType: "Course certificate", recognized: true, subjects: ["Markets", "Risk", "Behavioral finance", "Banking"], value: "Strong brand if completed", url: "https://www.coursera.org/learn/financial-markets-global", proofTip: "Write a 300-word market memo after each module." },
+      { role: "finance", provider: "Zerodha Varsity", title: "Stock Markets + Varsity Certified", cost: "free", priceNote: "Free", hours: 30, level: "Beginner", certType: "Certification", recognized: true, subjects: ["Stock markets", "Technical analysis", "Fundamental analysis", "Derivatives"], value: "India-relevant, well known", url: "https://zerodha.com/varsity/", proofTip: "Compare two sectors using public data and post it." },
+      { role: "finance", provider: "NISM (SEBI)", title: "Mutual Fund Distributors (Series V-A)", cost: "cheap", priceNote: "~Rs 1,500 exam", hours: 20, level: "Intermediate", certType: "Certification", recognized: true, subjects: ["Mutual funds", "Regulations", "Distribution"], value: "Regulatory, India-specific", url: "https://www.nism.ac.in/certifications/", proofTip: "Explain how an SIP works for a first-time investor." },
+      { role: "finance", provider: "Bloomberg", title: "Bloomberg Market Concepts (BMC)", cost: "paid", priceNote: "~$149 (often free via campus)", hours: 10, level: "Beginner", certType: "Certificate", recognized: true, subjects: ["Economic indicators", "Fixed income", "Currencies", "Equities"], value: "High recruiter recognition", url: "https://portal.bloombergforeducation.com/", proofTip: "Write a one-page macro outlook using the concepts." },
+      { role: "finance", provider: "Khan Academy", title: "Finance & Capital Markets", cost: "free", priceNote: "Free", hours: 10, level: "Beginner", certType: "Course", recognized: false, subjects: ["Interest", "Stocks", "Bonds", "Valuation"], value: "Great for absolute beginners", url: "https://www.khanacademy.org/economics-finance-domain/core-finance", proofTip: "Explain one valuation concept in simple words." },
+
+      // ---------- DESIGN ----------
+      { role: "design", provider: "freeCodeCamp", title: "Learn Figma for UI/UX (full course)", cost: "free", priceNote: "Free", hours: 6, level: "Beginner", certType: "Course", recognized: false, subjects: ["Figma", "Auto layout", "Components", "Prototyping"], value: "Hands-on tool proof", url: "https://www.freecodecamp.org/news/learn-figma-for-ui-ux-design/", proofTip: "Publish a 3-screen redesign with before and after." },
+      { role: "design", provider: "Figma Learn", title: "Figma for Beginners", cost: "free", priceNote: "Free", hours: 3, level: "Beginner", certType: "Course", recognized: false, subjects: ["Figma", "Frames", "Components", "Prototyping"], value: "Tool proof only", url: "https://help.figma.com/hc/en-us/categories/360002042553-Learn-design", proofTip: "Recreate one app screen and annotate decisions." },
+      { role: "design", provider: "Google", title: "Material Design Foundations", cost: "free", priceNote: "Free", hours: 4, level: "Beginner", certType: "Resource", recognized: false, subjects: ["UI principles", "Components", "Layout", "Color"], value: "Good UI vocabulary", url: "https://m3.material.io/foundations", proofTip: "Annotate a redesign with layout and color decisions." },
+      { role: "design", provider: "Canva Design School", title: "Graphic Design Essentials", cost: "free", priceNote: "Free", hours: 3, level: "Beginner", certType: "Course", recognized: false, subjects: ["Graphic design", "Layout", "Branding", "Social graphics"], value: "Fast visual basics", url: "https://www.canva.com/designschool/", proofTip: "Design a 5-slide brand carousel and post it." },
+      { role: "design", provider: "Deque University", title: "Accessibility Fundamentals", cost: "free", priceNote: "Free", hours: 3, level: "Beginner", certType: "Course", recognized: true, subjects: ["WCAG", "Accessibility", "Inclusive design"], value: "Differentiated beginner signal", url: "https://dequeuniversity.com/curriculum/online-classes", proofTip: "Audit one website for accessibility and post 5 fixes." },
+      { role: "design", provider: "Great Learning Academy", title: "UI/UX Design (free certificate)", cost: "free", priceNote: "Free", hours: 3, level: "Beginner", certType: "Course certificate", recognized: false, subjects: ["UX", "UI", "Wireframing", "Prototyping"], value: "Good starter cert", url: "https://www.mygreatlearning.com/academy/learn-for-free/courses/ui-ux", proofTip: "Wireframe one flow, then make a hi-fi version." },
+      { role: "design", provider: "Google / Coursera", title: "Google UX Design Certificate", cost: "paid", priceNote: "Free to audit; ~$49/mo for cert", hours: 200, level: "Beginner", certType: "Professional Certificate", recognized: true, subjects: ["UX research", "Wireframes", "Prototyping", "Figma", "Portfolio"], value: "Flagship recognized cert", url: "https://www.coursera.org/professional-certificates/google-ux-design", proofTip: "Use the 3 end-to-end projects as your portfolio." },
+      { role: "design", provider: "Interaction Design Foundation", title: "UX Design Courses (IxDF)", cost: "cheap", priceNote: "~$16/mo membership", hours: 25, level: "Beginner", certType: "Course certificates", recognized: true, subjects: ["UX", "Interaction design", "Research", "Usability"], value: "Respected, low cost", url: "https://www.interaction-design.org/", proofTip: "Apply one method to a real student problem and write it up." }
     ];
 
     const PROOF_WEIGHTS = { certificate: 10, project: 18, linkedin: 8, resume: 9, internship: 17, portfolio: 15 };
@@ -1584,9 +1620,13 @@
       return tier === 3 ? "High LinkedIn value" : tier === 2 ? "Medium LinkedIn value" : "Low alone, high with proof";
     }
 
-    // Rank by relevance to the student's target role, then LinkedIn value, then lowest effort (quickest win).
+    // Rank by relevance to the student's target role, then recruiter recognition and
+    // LinkedIn value, then lowest effort (quickest win).
     function certRank(cert, targetRole) {
-      return (cert.role === targetRole ? 100 : 0) + linkedinTier(cert.value) * 10 - cert.hours * 0.5;
+      return (cert.role === targetRole ? 100 : 0)
+        + (cert.recognized ? 12 : 0)
+        + linkedinTier(cert.value) * 10
+        - cert.hours * 0.2;
     }
 
     function renderCertificates() {
@@ -1598,7 +1638,7 @@
       const completed = getCompleted();
 
       const matches = certificateData.filter(cert => {
-        const text = `${cert.provider} ${cert.title} ${cert.value} ${cert.proofTip}`.toLowerCase();
+        const text = `${cert.provider} ${cert.title} ${cert.value} ${cert.proofTip} ${(cert.subjects || []).join(" ")} ${cert.level || ""}`.toLowerCase();
         const roleOk = role === "all" || cert.role === role;
         const costOk = cost === "all"
           || (cost === "free" && cert.cost === "free")
@@ -1629,12 +1669,14 @@
             <div class="cert-meta">
               ${index === 0 ? `<span class="pill">Top pick</span>` : ""}
               <span class="chip">${cert.provider}</span>
-              <span class="chip">${cert.cost}</span>
+              <span class="chip">${cert.priceNote || cert.cost}</span>
               <span class="chip">${cert.hours} hrs</span>
+              ${cert.level ? `<span class="chip">${cert.level}</span>` : ""}
               ${done ? `<span class="pill">&#10003; Completed</span>` : ""}
             </div>
             <h3>${cert.title}</h3>
             <p>${cert.value} &middot; ${tierLabel(linkedinTier(cert.value))}</p>
+            ${(cert.subjects && cert.subjects.length) ? `<div class="cert-meta">${cert.subjects.map(s => `<span class="chip">${s}</span>`).join("")}</div>` : ""}
           </div>
           <p class="mini">Proof to create: ${cert.proofTip}</p>
           <div class="cert-actions">
