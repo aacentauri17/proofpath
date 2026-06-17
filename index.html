@@ -979,7 +979,7 @@
         </div>
         <div class="nav-actions">
           <button class="btn" type="button" id="shareLinkBtn">Share link</button>
-          <a class="btn ghost" href="#growth">Growth plan</a>
+          <a class="btn ghost" href="#growth">How it works</a>
           <button class="btn clay" type="button" id="copyProfileBtn">Copy profile</button>
         </div>
       </nav>
@@ -992,18 +992,18 @@
             <p class="lede">Students add what they have done, choose a target role, and get a readiness score, proof profile, and next actions that are cheap, visible, and LinkedIn-ready.</p>
           </div>
 
-          <div class="hero-board" aria-label="Product principles">
+          <div class="hero-board" aria-label="What you get">
             <div class="board-item">
-              <strong>0</strong>
-              <span>Backend required for the MVP</span>
+              <strong>5</strong>
+              <span>Internship tracks, marketing to finance</span>
             </div>
             <div class="board-item">
-              <strong>6</strong>
-              <span>Months of moat from proof data</span>
+              <strong>14</strong>
+              <span>Day action plan built around your gaps</span>
             </div>
             <div class="board-item">
-              <strong>1</strong>
-              <span>Shareable student status object</span>
+              <strong>Free</strong>
+              <span>And private - nothing leaves your browser</span>
             </div>
           </div>
         </section>
@@ -1014,7 +1014,7 @@
               <h2 id="formTitle">Build your proof profile</h2>
               <p>Start with a quick self-audit. Nothing leaves this browser.</p>
             </div>
-            <span class="stamp">MVP<br>v1</span>
+            <span class="stamp">100%<br>FREE</span>
           </div>
 
           <noscript>
@@ -1088,8 +1088,8 @@
             <div class="form-actions">
               <button class="btn primary" type="submit">Generate plan</button>
               <button class="btn" type="button" id="saveBtn">Save locally</button>
-              <button class="btn ghost" type="button" id="resetBtn">Reset sample</button>
-              <span class="mini" id="savedState">Unsaved demo profile</span>
+              <button class="btn ghost" type="button" id="resetBtn">Load example</button>
+              <span class="mini" id="savedState">Example profile - edit with your own details</span>
             </div>
           </form>
         </section>
@@ -1146,7 +1146,7 @@
             <div class="section-head">
               <div>
                 <h2 id="recTitle">Recommended proof</h2>
-                <p>Certificate + project + post. That trio is harder to replace with a prompt.</p>
+                <p>Certificate + project + post. That trio gets you shortlisted faster than any single course.</p>
               </div>
             </div>
             <div class="recommendations" id="recommendations"></div>
@@ -1156,7 +1156,7 @@
             <div class="section-head">
               <div>
                 <h2 id="finderTitle">Certificate finder</h2>
-                <p>Seed list for launch. Filter it, ship it, then replace guesses with student outcome data.</p>
+                <p>Free and cheap certificates ranked for your target role. Each one tells you the proof to build after.</p>
               </div>
               <span class="pill" id="certCount">0 matches</span>
             </div>
@@ -1187,17 +1187,17 @@
           <section class="panel section" aria-labelledby="tierTitle">
             <div class="section-head">
               <div>
-                <h2 id="tierTitle">Starter certification tier list</h2>
-                <p>This is seed data. The product moat becomes student reviews, completion times, and internship outcomes.</p>
+                <h2 id="tierTitle">Which certificates actually help</h2>
+                <p>A certificate alone rarely gets you shortlisted. Here is what to build with each one so it becomes real proof.</p>
               </div>
             </div>
             <table class="table">
               <thead>
                 <tr>
                   <th>Track</th>
-                  <th>Free/cheap proof</th>
+                  <th>Where to start (free/cheap)</th>
                   <th>LinkedIn value</th>
-                  <th>Moat data to collect</th>
+                  <th>What to build after</th>
                 </tr>
               </thead>
               <tbody id="tierRows"></tbody>
@@ -1208,15 +1208,15 @@
 
       <section class="growth" id="growth" aria-labelledby="growthTitle">
         <div>
-          <p class="eyebrow">How this gets users</p>
-          <h2 id="growthTitle">Make the output a status object.</h2>
-          <p class="lede">The MVP should teach marketing by forcing distribution into the product: profiles, badges, tier lists, and campus comparisons.</p>
+          <p class="eyebrow">How it works</p>
+          <h2 id="growthTitle">From scattered proof to a clear plan.</h2>
+          <p class="lede">ProofPath turns what you have already done into a readiness score, a shareable profile, and the exact next steps - no guessing, no cost.</p>
         </div>
         <ul class="growth-list">
-          <li><strong>Week 1:</strong> launch with 25 certificates and 5 target roles. Manually add student feedback from friends and college groups.</li>
-          <li><strong>Week 2:</strong> add public profile links and "copy my LinkedIn proof post." Every user becomes a tiny distribution channel.</li>
-          <li><strong>Week 3:</strong> add campus pages: top certificates at NMIMS, DU, VIT, SRCC, etc. This is your SEO and WhatsApp hook.</li>
-          <li><strong>Week 4:</strong> ask users whether a certificate helped them get interviews. Outcomes become the moat.</li>
+          <li><strong>1. Self-audit:</strong> add your degree, target role, and the proof you already have. It takes about two minutes.</li>
+          <li><strong>2. Get your score:</strong> see your internship readiness, a clear breakdown, and the single biggest gap holding you back.</li>
+          <li><strong>3. Build visible proof:</strong> follow a 14-day plan and a ranked certificate list, each paired with the proof to post afterwards.</li>
+          <li><strong>4. Share it:</strong> copy your proof profile or share a link on LinkedIn and WhatsApp so recruiters see proof, not just claims.</li>
         </ul>
       </section>
     </main>
@@ -1225,6 +1225,49 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script>
+    /* =========================================================================
+       MOAT / OUTCOME DATA CAPTURE
+       Paste your Supabase project URL + anon public key below to start
+       collecting anonymous student outcome data (which certs get finished,
+       which lead to shortlists, by role/degree/college).
+       Leave them blank and the site works exactly the same - capture is a no-op.
+       Setup SQL is in README.md.
+       ========================================================================= */
+    const SUPABASE_URL = "";        // e.g. "https://abcdefgh.supabase.co"
+    const SUPABASE_ANON_KEY = "";   // anon public key from Project Settings > API
+
+    const analytics = {
+      enabled() {
+        return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
+      },
+      sessionId() {
+        let id = localStorage.getItem("proofpath-session");
+        if (!id) {
+          id = (crypto.randomUUID && crypto.randomUUID()) || `s_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+          localStorage.setItem("proofpath-session", id);
+        }
+        return id;
+      },
+      track(type, payload = {}) {
+        if (!this.enabled()) return;
+        try {
+          fetch(`${SUPABASE_URL}/rest/v1/events`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+              Prefer: "return=minimal"
+            },
+            body: JSON.stringify({ session_id: this.sessionId(), type, ...payload }),
+            keepalive: true
+          }).catch(() => {});
+        } catch (error) {
+          /* never let analytics break the app */
+        }
+      }
+    };
+
     const roleData = {
       marketing: {
         label: "Marketing internship",
@@ -1314,11 +1357,11 @@
     };
 
     const tierData = [
-      ["Marketing", "Google Digital Marketing, HubSpot Academy", "High for beginners", "Actual completion time, best module, internship outcome"],
-      ["Data", "Kaggle, freeCodeCamp, Microsoft Learn", "Medium-high with project", "Dashboard links, dataset quality, interview callbacks"],
-      ["Product", "Reforge snippets, Product School free events, analytics courses", "Medium unless applied", "Teardown quality, PRD examples, mentor reviews"],
-      ["Finance", "Coursera audit courses, CFI free resources, NSE modules where relevant", "Brand-sensitive", "Region, role fit, recruiter recognition"],
-      ["Design", "Figma Learn, Google UX audit mode, accessibility basics", "Low alone, high with portfolio", "Case study views, peer ratings, hiring feedback"]
+      ["Marketing", "Google Digital Marketing, HubSpot Academy", "High for beginners", "A campaign teardown with 3 metrics, posted on LinkedIn"],
+      ["Data", "Kaggle, freeCodeCamp, Microsoft Learn", "Medium-high with project", "A public dashboard plus a short before/after insight"],
+      ["Product", "Great Learning, Google Analytics, Mind the Product", "Medium unless applied", "A one-page PRD or app teardown for a student problem"],
+      ["Finance", "Coursera audit courses, CFI free resources, NSE modules", "Brand-sensitive", "A one-company model and a 300-word market memo"],
+      ["Design", "Figma Learn, Material Design, accessibility basics", "Low alone, high with portfolio", "A 3-screen redesign case study explaining your decisions"]
     ];
 
     const certificateData = [
@@ -1351,6 +1394,19 @@
 
     function setCompleted(set) {
       localStorage.setItem(certProgressKey, JSON.stringify([...set]));
+    }
+
+    const certOutcomeKey = "proofpath-cert-outcomes";
+
+    function getOutcomes() {
+      try { return JSON.parse(localStorage.getItem(certOutcomeKey)) || {}; }
+      catch (error) { return {}; }
+    }
+
+    function setOutcome(title, outcome) {
+      const outcomes = getOutcomes();
+      outcomes[title] = outcome;
+      localStorage.setItem(certOutcomeKey, JSON.stringify(outcomes));
     }
 
     const form = document.querySelector("#profileForm");
@@ -1562,8 +1618,10 @@
         return;
       }
 
+      const outcomes = getOutcomes();
       matches.forEach((cert, index) => {
         const done = completed.has(cert.title);
+        const outcome = outcomes[cert.title];
         const card = document.createElement("article");
         card.className = "cert-card";
         card.innerHTML = `
@@ -1580,10 +1638,18 @@
           </div>
           <p class="mini">Proof to create: ${cert.proofTip}</p>
           <div class="cert-actions">
-            <a class="btn ghost" href="${cert.url}" target="_blank" rel="noreferrer">Open</a>
+            <a class="btn ghost" href="${cert.url}" target="_blank" rel="noreferrer" data-open="${cert.title}">Open</a>
             <button class="text-link" type="button" data-cert="${cert.title}">Copy proof idea</button>
             <button class="text-link" type="button" data-done="${cert.title}">${done ? "Mark not done" : "Mark completed"}</button>
           </div>
+          ${done ? (outcome
+            ? `<p class="mini">Thanks - logged that it ${outcome === "yes" ? "helped you get shortlisted" : "has not helped yet"}.</p>`
+            : `<div class="cert-actions" style="margin-top: 8px; padding-top: 10px; border-top: 1px solid var(--line);">
+                <span class="mini">Did this help you get shortlisted?</span>
+                <button class="text-link" type="button" data-outcome="yes" data-outcome-cert="${cert.title}">Yes</button>
+                <button class="text-link" type="button" data-outcome="not-yet" data-outcome-cert="${cert.title}">Not yet</button>
+              </div>`)
+            : ""}
         `;
         grid.appendChild(card);
       });
@@ -1660,6 +1726,7 @@
       const text = `${profile.name} - ${role.label}\nReadiness: ${score}/100 (${scoreBand(score)})\nProof: ${profile.proofs.join(", ") || "starting now"}\nNext move: ${role.lift}\nBuilt with ProofPath`;
       try {
         await navigator.clipboard.writeText(text);
+        analytics.track("profile_copied", { role: profile.role, degree: profile.degree, college: profile.college, score });
         showToast("Profile copied for LinkedIn or WhatsApp.");
       } catch (error) {
         showToast("Copy failed. Select the profile text manually.");
@@ -1674,6 +1741,7 @@
       const url = `${base}?p=${encoded}`;
       try {
         await navigator.clipboard.writeText(url);
+        analytics.track("profile_shared", { role: form.targetRole.value });
         showToast("Share link copied.");
       } catch (error) {
         showToast("Could not copy link in this browser.");
@@ -1683,6 +1751,18 @@
     form.addEventListener("submit", event => {
       event.preventDefault();
       render();
+      const profile = getProfile();
+      analytics.track("profile_generated", {
+        role: profile.role,
+        degree: profile.degree,
+        college: profile.college,
+        score: calculateScore(profile),
+        meta: {
+          proofs: profile.proofs,
+          weekly_time: profile.weeklyTime,
+          achievements_len: profile.achievements.trim().length
+        }
+      });
       document.querySelector("#results").scrollIntoView({ behavior: "smooth", block: "start" });
     });
 
@@ -1699,17 +1779,53 @@
       renderCertificates();
     });
 
+    function findCert(title) {
+      return certificateData.find(item => item.title === title);
+    }
+
     document.querySelector("#certificateGrid").addEventListener("click", event => {
+      const outcomeBtn = event.target.closest("[data-outcome]");
+      if (outcomeBtn) {
+        const title = outcomeBtn.dataset.outcomeCert;
+        const outcome = outcomeBtn.dataset.outcome;
+        const cert = findCert(title);
+        setOutcome(title, outcome);
+        analytics.track("outcome_reported", {
+          role: cert ? cert.role : null,
+          cert_title: title,
+          cert_provider: cert ? cert.provider : null,
+          meta: { outcome }
+        });
+        showToast(outcome === "yes" ? "Great - thanks for sharing!" : "Thanks - keep building proof.");
+        renderCertificates();
+        return;
+      }
+
+      const openBtn = event.target.closest("[data-open]");
+      if (openBtn) {
+        const cert = findCert(openBtn.dataset.open);
+        if (cert) {
+          analytics.track("cert_opened", { role: cert.role, cert_title: cert.title, cert_provider: cert.provider });
+        }
+        return; // let the link open normally
+      }
+
       const doneBtn = event.target.closest("[data-done]");
       if (doneBtn) {
         const completed = getCompleted();
         const title = doneBtn.dataset.done;
+        const cert = findCert(title);
         if (completed.has(title)) {
           completed.delete(title);
           showToast("Marked as not done.");
         } else {
           completed.add(title);
           showToast("Nice - logged as completed.");
+          analytics.track("cert_completed", {
+            role: cert ? cert.role : null,
+            cert_title: title,
+            cert_provider: cert ? cert.provider : null
+          });
         }
         setCompleted(completed);
         renderCertificates();
@@ -1718,8 +1834,9 @@
 
       const copyBtn = event.target.closest("[data-cert]");
       if (!copyBtn) return;
-      const cert = certificateData.find(item => item.title === copyBtn.dataset.cert);
+      const cert = findCert(copyBtn.dataset.cert);
       if (!cert) return;
+      analytics.track("proof_idea_copied", { role: cert.role, cert_title: cert.title, cert_provider: cert.provider });
       navigator.clipboard.writeText(`${cert.title}: ${cert.proofTip}`).then(
         () => showToast("Proof idea copied."),
         () => showToast("Copy failed in this browser.")

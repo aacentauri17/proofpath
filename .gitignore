@@ -1,6 +1,10 @@
 # Vercel
 .vercel
 
+# Local tooling / preview config
+.claude/
+.__check.js
+
 # OS / editor
 .DS_Store
 Thumbs.db
