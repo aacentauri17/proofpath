@@ -42,26 +42,9 @@
 
       <div class="shell">
         <section class="hero" aria-labelledby="pageTitle">
-          <div>
-            <p class="eyebrow">Free student career launchpad</p>
-            <h1 id="pageTitle">Turn messy proof into an internship plan.</h1>
-            <p class="lede">Students add what they have done, choose a target role, and get a readiness score, proof profile, and next actions that are cheap, visible, and LinkedIn-ready.</p>
-          </div>
-
-          <div class="hero-board" aria-label="What you get">
-            <div class="board-item">
-              <strong>6</strong>
-              <span>Internship tracks, marketing to software</span>
-            </div>
-            <div class="board-item">
-              <strong>14</strong>
-              <span>Day action plan built around your gaps</span>
-            </div>
-            <div class="board-item">
-              <strong>Free</strong>
-              <span>And private - nothing leaves your browser</span>
-            </div>
-          </div>
+          <p class="eyebrow">Free student career launchpad</p>
+          <h1 id="pageTitle">Turn messy proof into an internship plan.</h1>
+          <p class="lede">Add what you've already done, pick a target role, and get your internship readiness score plus the next moves to make - free, private, in about two minutes.</p>
         </section>
 
         <section class="panel intake" aria-labelledby="formTitle">
@@ -772,6 +755,28 @@
         - cert.hours * 0.2;
     }
 
+    // Pure learning resources that do not grant a shareable credential.
+    const NO_CERTIFICATE_TITLES = new Set([
+      "ProductTank Talks & Resources",
+      "Material Design Foundations",
+      "Full Stack JavaScript Path",
+      "Tableau Public Training",
+      "Finance & Capital Markets",
+      "Figma for Beginners",
+      "Learn Figma for UI/UX (full course)",
+      "Graphic Design Essentials"
+    ]);
+
+    // Returns a clear "what you get" label so students know the output type.
+    function credentialOf(cert) {
+      if (NO_CERTIFICATE_TITLES.has(cert.title)) return { label: "No certificate", has: false };
+      const type = (cert.certType || "").toLowerCase();
+      if (/resource|curriculum|elearning|talks/.test(type)) return { label: "No certificate", has: false };
+      if (/badge|superbadge/.test(type)) return { label: "Shareable badge", has: true };
+      if (/learning path|courses \/ certification/.test(type)) return { label: "Cert via exam", has: true };
+      return { label: "Certificate", has: true };
+    }
+
     function renderCertificates() {
       const query = certSearch.value.trim().toLowerCase();
       const role = certRole.value;
@@ -805,23 +810,20 @@
       matches.forEach((cert, index) => {
         const done = completed.has(cert.title);
         const outcome = outcomes[cert.title];
+        const cred = credentialOf(cert);
+        const subjects = cert.subjects || [];
         const card = document.createElement("article");
-        card.className = "cert-card";
+        card.className = "cert-card" + (index === 0 ? " is-top" : "");
         card.innerHTML = `
-          <div>
-            <div class="cert-meta">
-              ${index === 0 ? `<span class="pill">Top pick</span>` : ""}
-              <span class="chip">${cert.provider}</span>
-              <span class="chip">${cert.priceNote || cert.cost}</span>
-              <span class="chip">${cert.hours} hrs</span>
-              ${cert.level ? `<span class="chip">${cert.level}</span>` : ""}
-              ${done ? `<span class="pill">&#10003; Completed</span>` : ""}
-            </div>
-            <h3>${cert.title}</h3>
-            <p>${cert.value} &middot; ${tierLabel(linkedinTier(cert.value))}</p>
-            ${(cert.subjects && cert.subjects.length) ? `<div class="cert-meta">${cert.subjects.map(s => `<span class="chip">${s}</span>`).join("")}</div>` : ""}
+          <div class="cert-top">
+            <span class="cert-provider">${index === 0 ? `<span class="top-flag">Top pick</span> &middot; ` : ""}${cert.provider}</span>
+            <span class="cred ${cred.has ? "cred-yes" : "cred-no"}">${cred.label}</span>
           </div>
-          <p class="mini">Proof to create: ${cert.proofTip}</p>
+          <h3>${cert.title}</h3>
+          <p class="cert-value">${cert.value}</p>
+          <p class="cert-line">${cert.priceNote || cert.cost} &middot; ${cert.hours} hrs &middot; ${cert.level || "All levels"}${done ? ` &middot; <span class="done">&#10003; Completed</span>` : ""}</p>
+          ${subjects.length ? `<p class="cert-covers">Covers ${subjects.slice(0, 4).join(", ")}</p>` : ""}
+          <p class="cert-proof"><strong>Proof to create:</strong> ${cert.proofTip}</p>
           <div class="cert-actions">
             <a class="btn ghost" href="${cert.url}" target="_blank" rel="noreferrer" data-open="${cert.title}">Open</a>
             <button class="text-link" type="button" data-cert="${cert.title}">Copy proof idea</button>
@@ -829,7 +831,7 @@
           </div>
           ${done ? (outcome
             ? `<p class="mini">Thanks - logged that it ${outcome === "yes" ? "helped you get shortlisted" : "has not helped yet"}.</p>`
-            : `<div class="cert-actions" style="margin-top: 8px; padding-top: 10px; border-top: 1px solid var(--line);">
+            : `<div class="cert-actions" style="margin-top: 6px; padding-top: 10px; border-top: 1px solid var(--line);">
                 <span class="mini">Did this help you get shortlisted?</span>
                 <button class="text-link" type="button" data-outcome="yes" data-outcome-cert="${cert.title}">Yes</button>
                 <button class="text-link" type="button" data-outcome="not-yet" data-outcome-cert="${cert.title}">Not yet</button>
