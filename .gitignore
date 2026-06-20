@@ -3,7 +3,7 @@
 
 # Local tooling / preview config
 .claude/
-.__check.js
+.__*
 
 # OS / editor
 .DS_Store
