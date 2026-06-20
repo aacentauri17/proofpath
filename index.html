@@ -171,27 +171,6 @@
         </aside>
 
         <div class="stack">
-          <section class="panel section" aria-labelledby="roadmapTitle">
-            <div class="section-head">
-              <div>
-                <h2 id="roadmapTitle">Next 14 days</h2>
-                <p>Actions that create visible proof, not just private learning.</p>
-              </div>
-              <span class="pill" id="pacePill">3 hrs/week</span>
-            </div>
-            <div class="roadmap" id="roadmap"></div>
-          </section>
-
-          <section class="panel section" aria-labelledby="recTitle">
-            <div class="section-head">
-              <div>
-                <h2 id="recTitle">Recommended proof</h2>
-                <p>Certificate + project + post. That trio gets you shortlisted faster than any single course.</p>
-              </div>
-            </div>
-            <div class="recommendations" id="recommendations"></div>
-          </section>
-
           <section class="panel section" aria-labelledby="finderTitle">
             <div class="section-head">
               <div>
@@ -243,6 +222,27 @@
               </thead>
               <tbody id="tierRows"></tbody>
             </table>
+          </section>
+
+          <section class="panel section" aria-labelledby="roadmapTitle">
+            <div class="section-head">
+              <div>
+                <h2 id="roadmapTitle">Next 14 days</h2>
+                <p>Actions that create visible proof, not just private learning.</p>
+              </div>
+              <span class="pill" id="pacePill">3 hrs/week</span>
+            </div>
+            <div class="roadmap" id="roadmap"></div>
+          </section>
+
+          <section class="panel section" aria-labelledby="recTitle">
+            <div class="section-head">
+              <div>
+                <h2 id="recTitle">Recommended proof</h2>
+                <p>Certificate + project + post. That trio gets you shortlisted faster than any single course.</p>
+              </div>
+            </div>
+            <div class="recommendations" id="recommendations"></div>
           </section>
         </div>
       </section>
@@ -723,13 +723,16 @@
         recs.appendChild(rec);
       });
 
+      renderTierRows(profile.role);
       renderCertificates();
     }
 
-    function renderTierRows() {
+    function renderTierRows(role) {
       const body = document.querySelector("#tierRows");
       body.innerHTML = "";
-      tierData.forEach(row => {
+      const matched = role ? tierData.filter(row => row[0].toLowerCase() === role) : tierData;
+      const rows = matched.length ? matched : tierData;
+      rows.forEach(row => {
         const tr = document.createElement("tr");
         tr.innerHTML = row.map((cell, index) => `<td>${index === 0 ? `<strong>${cell}</strong>` : cell}</td>`).join("");
         body.appendChild(tr);
@@ -1070,7 +1073,6 @@
       }
     });
 
-    renderTierRows();
     loadProfile();
     certRole.value = form.targetRole.value;
     render();
