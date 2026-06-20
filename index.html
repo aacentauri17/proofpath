@@ -777,6 +777,25 @@
       return { label: "Certificate", has: true };
     }
 
+    // Tracks which cards are expanded so the state survives re-renders.
+    const openCards = new Set();
+
+    function toggleCard(card) {
+      if (!card) return;
+      const title = card.dataset.title;
+      const details = card.querySelector(".cert-details");
+      if (!details) return;
+      const isOpen = openCards.has(title);
+      if (isOpen) openCards.delete(title); else openCards.add(title);
+      details.hidden = isOpen;
+      card.classList.toggle("is-open", !isOpen);
+      const toggle = card.querySelector("[data-toggle]");
+      if (toggle) {
+        toggle.textContent = isOpen ? "Details" : "Hide details";
+        toggle.setAttribute("aria-expanded", String(!isOpen));
+      }
+    }
+
     function renderCertificates() {
       const query = certSearch.value.trim().toLowerCase();
       const role = certRole.value;
@@ -812,31 +831,38 @@
         const outcome = outcomes[cert.title];
         const cred = credentialOf(cert);
         const subjects = cert.subjects || [];
+        const isOpen = openCards.has(cert.title);
         const card = document.createElement("article");
-        card.className = "cert-card" + (index === 0 ? " is-top" : "");
+        card.className = "cert-card" + (index === 0 ? " is-top" : "") + (isOpen ? " is-open" : "");
+        card.dataset.title = cert.title;
         card.innerHTML = `
           <div class="cert-top">
             <span class="cert-provider">${index === 0 ? `<span class="top-flag">Top pick</span> &middot; ` : ""}${cert.provider}</span>
             <span class="cred ${cred.has ? "cred-yes" : "cred-no"}">${cred.label}</span>
           </div>
           <h3>${cert.title}</h3>
-          <p class="cert-value">${cert.value}</p>
           <p class="cert-line">${cert.priceNote || cert.cost} &middot; ${cert.hours} hrs &middot; ${cert.level || "All levels"}${done ? ` &middot; <span class="done">&#10003; Completed</span>` : ""}</p>
-          ${subjects.length ? `<p class="cert-covers">Covers ${subjects.slice(0, 4).join(", ")}</p>` : ""}
-          <p class="cert-proof"><strong>Proof to create:</strong> ${cert.proofTip}</p>
           <div class="cert-actions">
             <a class="btn ghost" href="${cert.url}" target="_blank" rel="noreferrer" data-open="${cert.title}">Open</a>
-            <button class="text-link" type="button" data-cert="${cert.title}">Copy proof idea</button>
-            <button class="text-link" type="button" data-done="${cert.title}">${done ? "Mark not done" : "Mark completed"}</button>
+            <button class="text-link" type="button" data-toggle aria-expanded="${isOpen}">${isOpen ? "Hide details" : "Details"}</button>
           </div>
-          ${done ? (outcome
-            ? `<p class="mini">Thanks - logged that it ${outcome === "yes" ? "helped you get shortlisted" : "has not helped yet"}.</p>`
-            : `<div class="cert-actions" style="margin-top: 6px; padding-top: 10px; border-top: 1px solid var(--line);">
-                <span class="mini">Did this help you get shortlisted?</span>
-                <button class="text-link" type="button" data-outcome="yes" data-outcome-cert="${cert.title}">Yes</button>
-                <button class="text-link" type="button" data-outcome="not-yet" data-outcome-cert="${cert.title}">Not yet</button>
-              </div>`)
-            : ""}
+          <div class="cert-details"${isOpen ? "" : " hidden"}>
+            <p class="cert-value">${cert.value}</p>
+            ${subjects.length ? `<p class="cert-covers">Covers ${subjects.slice(0, 4).join(", ")}</p>` : ""}
+            <p class="cert-proof"><strong>Proof to create:</strong> ${cert.proofTip}</p>
+            <div class="cert-actions">
+              <button class="text-link" type="button" data-cert="${cert.title}">Copy proof idea</button>
+              <button class="text-link" type="button" data-done="${cert.title}">${done ? "Mark not done" : "Mark completed"}</button>
+            </div>
+            ${done ? (outcome
+              ? `<p class="mini">Thanks - logged that it ${outcome === "yes" ? "helped you get shortlisted" : "has not helped yet"}.</p>`
+              : `<div class="cert-actions" style="margin-top: 2px; padding-top: 10px; border-top: 1px solid var(--line);">
+                  <span class="mini">Did this help you get shortlisted?</span>
+                  <button class="text-link" type="button" data-outcome="yes" data-outcome-cert="${cert.title}">Yes</button>
+                  <button class="text-link" type="button" data-outcome="not-yet" data-outcome-cert="${cert.title}">Not yet</button>
+                </div>`)
+              : ""}
+          </div>
         `;
         grid.appendChild(card);
       });
@@ -1021,14 +1047,27 @@
       }
 
       const copyBtn = event.target.closest("[data-cert]");
-      if (!copyBtn) return;
-      const cert = findCert(copyBtn.dataset.cert);
-      if (!cert) return;
-      analytics.track("proof_idea_copied", { role: cert.role, cert_title: cert.title, cert_provider: cert.provider });
-      navigator.clipboard.writeText(`${cert.title}: ${cert.proofTip}`).then(
-        () => showToast("Proof idea copied."),
-        () => showToast("Copy failed in this browser.")
-      );
+      if (copyBtn) {
+        const cert = findCert(copyBtn.dataset.cert);
+        if (!cert) return;
+        analytics.track("proof_idea_copied", { role: cert.role, cert_title: cert.title, cert_provider: cert.provider });
+        navigator.clipboard.writeText(`${cert.title}: ${cert.proofTip}`).then(
+          () => showToast("Proof idea copied."),
+          () => showToast("Copy failed in this browser.")
+        );
+        return;
+      }
+
+      // Otherwise: expand/collapse the card (Details button or a click on the card body).
+      const toggleBtn = event.target.closest("[data-toggle]");
+      if (toggleBtn) {
+        toggleCard(toggleBtn.closest(".cert-card"));
+        return;
+      }
+      const card = event.target.closest(".cert-card");
+      if (card && !event.target.closest("a, button")) {
+        toggleCard(card);
+      }
     });
 
     renderTierRows();

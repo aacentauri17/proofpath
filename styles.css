@@ -108,12 +108,16 @@
       display: grid;
       grid-template-columns: 1fr;
       gap: clamp(16px, 3vw, 26px);
-      max-width: 760px;
+      max-width: 720px;
+      margin: 0 auto;
+      width: 100%;
     }
 
     .hero {
       display: flex;
       flex-direction: column;
+      align-items: center;
+      text-align: center;
       gap: 14px;
       padding: clamp(12px, 3vw, 24px) 0 0;
     }
@@ -738,6 +742,18 @@
       border: 1px solid var(--line);
       border-radius: var(--radius);
       background: var(--paper-2);
+      display: grid;
+      gap: 7px;
+      cursor: pointer;
+      transition: border-color 140ms ease, box-shadow 140ms ease;
+    }
+
+    .cert-card:hover {
+      border-color: var(--line-strong);
+      box-shadow: 0 6px 18px rgba(44, 35, 22, 0.08);
+    }
+
+    .cert-details {
       display: grid;
       gap: 7px;
     }
