@@ -1,0 +1,15 @@
+Redesign logo, restyle eyebrow, split How-it-works page, reveal results on submit
+
+1) Logo: replace the "PP" text circle with a proper SVG emblem (a proof check
+   landing on a destination node) in the nav, favicon, and OG image.
+2) Eyebrow: drop the green pill box (looked generic) for an editorial kicker -
+   small caps with a short rule, transparent background.
+3) How it works moved to its own page (how-it-works.html); nav links to it.
+4) Home page now shows only the hero + "Build your proof profile" form;
+   the score, roadmap, recommendations, finder, and tier list stay hidden
+   until the user submits the form.
+
+Also extracted the inline CSS to a shared styles.css so both pages share one
+stylesheet.
+
+Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>
