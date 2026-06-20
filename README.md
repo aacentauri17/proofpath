@@ -17,14 +17,19 @@ completed-certificate progress use `localStorage`).
 
 ```
 .
-├── index.html      # the entire app (HTML + CSS + JS, single file)
-├── favicon.svg     # brand mark
-├── og-image.png    # social share card (1200x630)
-├── vercel.json     # static hosting config (clean URLs + security headers)
+├── index.html                       # the entire app (HTML + CSS + JS, single file)
+├── favicon.svg                      # brand mark
+├── og-image.png                     # social share card (1200x630)
+├── vercel.json                      # static hosting config (clean URLs + headers)
+├── supabase/
+│   ├── schema.sql                   # events + certificates tables (+ RLS)
+│   └── certificates_seed.sql        # 72-cert catalog seed (generated)
 └── README.md
 ```
 
-This is a **static site** — there is no build step.
+This is a **static site** — there is no build step. The 72-cert catalog ships
+embedded in `index.html` and works with zero backend. When Supabase is configured,
+the app loads the catalog from the `certificates` table instead (see below).
 
 ## Run locally
 
@@ -86,43 +91,32 @@ and the site works identically until you turn it on.
 ### Setup (about 5 minutes)
 
 1. Create a free project at [supabase.com](https://supabase.com).
-2. In the **SQL Editor**, run:
-
-   ```sql
-   create table if not exists public.events (
-     id uuid primary key default gen_random_uuid(),
-     created_at timestamptz not null default now(),
-     session_id text,
-     type text not null,
-     role text,
-     degree text,
-     college text,
-     score int,
-     cert_title text,
-     cert_provider text,
-     meta jsonb
-   );
-
-   alter table public.events enable row level security;
-
-   -- Anonymous students can only INSERT events. No one can read/update/delete
-   -- from the browser; you read the data via the Supabase dashboard / service role.
-   create policy "anon can insert events"
-     on public.events for insert to anon with check (true);
-   ```
-
-3. In **Project Settings → API**, copy the **Project URL** and the **anon public** key.
-4. Paste both into the config block at the top of the `<script>` in `index.html`:
+2. In the **SQL Editor**, run [`supabase/schema.sql`](supabase/schema.sql) — this creates
+   both the `events` table (insert-only) and the `certificates` table (read-only).
+3. (Optional, to make the catalog data-driven) run
+   [`supabase/certificates_seed.sql`](supabase/certificates_seed.sql) to load all 72 certs.
+4. In **Project Settings → API**, copy the **Project URL** and the **anon public** key.
+5. Paste both into the config block at the top of the `<script>` in `index.html`:
 
    ```js
    const SUPABASE_URL = "https://YOUR-PROJECT.supabase.co";
    const SUPABASE_ANON_KEY = "YOUR-ANON-PUBLIC-KEY";
    ```
 
-5. Commit and push — Vercel auto-deploys. Events now flow into the `events` table.
+6. Commit and push — Vercel auto-deploys. Events now flow into `events`, and the finder
+   loads its catalog from `certificates` (falling back to the embedded list on any error).
 
-The anon key is safe to expose: row-level security allows inserts only, so the public
-key cannot read or modify data. Add rate-limiting / a captcha later if you see abuse.
+The anon key is safe to expose: row-level security allows the public to **insert** events
+and **read** the catalog only — it cannot read events or modify the catalog. Add
+rate-limiting / a captcha later if you see abuse.
+
+### Editing the catalog without code changes
+
+Once the catalog lives in Supabase, add or edit certs directly in the
+**Table Editor → certificates** — no redeploy needed; students see changes on next load.
+`subjects` is a JSON array, e.g. `["SEO","Email"]`. To regenerate the seed file from the
+embedded array after editing `index.html`, re-run the generator described in the catalog
+comment, or just keep editing in Supabase.
 
 ### Querying the moat (examples)
 

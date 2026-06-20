@@ -994,8 +994,8 @@
 
           <div class="hero-board" aria-label="What you get">
             <div class="board-item">
-              <strong>5</strong>
-              <span>Internship tracks, marketing to finance</span>
+              <strong>6</strong>
+              <span>Internship tracks, marketing to software</span>
             </div>
             <div class="board-item">
               <strong>14</strong>
@@ -1053,6 +1053,7 @@
                 <option value="product">Product internship</option>
                 <option value="finance">Finance internship</option>
                 <option value="design">Design internship</option>
+                <option value="software">Software dev internship</option>
               </select>
             </div>
 
@@ -1169,6 +1170,7 @@
                 <option value="product">Product</option>
                 <option value="finance">Finance</option>
                 <option value="design">Design</option>
+                <option value="software">Software dev</option>
               </select>
               <select id="certCost">
                 <option value="all">Any cost (incl. paid)</option>
@@ -1268,6 +1270,44 @@
       }
     };
 
+    // Maps a Supabase `certificates` row (snake_case) to the in-app cert shape.
+    function normalizeCert(row) {
+      return {
+        role: row.role,
+        provider: row.provider,
+        title: row.title,
+        cost: row.cost,
+        priceNote: row.price_note,
+        hours: row.hours,
+        level: row.level,
+        certType: row.cert_type,
+        recognized: row.recognized,
+        subjects: Array.isArray(row.subjects) ? row.subjects : (row.subjects || []),
+        value: row.value,
+        url: row.url,
+        proofTip: row.proof_tip
+      };
+    }
+
+    // When Supabase is configured, replace the embedded catalog with the live table.
+    // Falls back silently to the embedded array on any error or empty result.
+    async function loadCatalog() {
+      if (!analytics.enabled()) return;
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/certificates?select=*&order=role.asc`, {
+          headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` }
+        });
+        if (!res.ok) return;
+        const rows = await res.json();
+        if (Array.isArray(rows) && rows.length) {
+          certificateData = rows.map(normalizeCert);
+          renderCertificates();
+        }
+      } catch (error) {
+        /* keep the embedded fallback catalog */
+      }
+    }
+
     const roleData = {
       marketing: {
         label: "Marketing internship",
@@ -1353,6 +1393,23 @@
           ["project", "Campus app redesign", "Redesign attendance, events, clubs, or placements.", "Weekend"],
           ["proof", "Case study carousel", "Explain why, not just what it looks like.", "45 min"]
         ]
+      },
+      software: {
+        label: "Software dev internship",
+        base: 24,
+        lift: "Ship a small app to GitHub with a clear README",
+        angle: "Working code over claims",
+        summary: "Software dev candidate with early fundamentals. Needs one shipped, running project and a readable GitHub.",
+        roadmap: [
+          ["Build", "Pick one small, real problem and build a working prototype.", "3 hrs"],
+          ["Ship", "Push it to GitHub with a README, screenshots, and setup steps.", "1 hr"],
+          ["Explain", "Write a short post on what you built and one hard bug you fixed.", "30 min"]
+        ],
+        recs: [
+          ["certificate", "CS50 or freeCodeCamp", "Free, respected fundamentals. Pair with one shipped project.", "Weekend+"],
+          ["project", "One deployed mini-app", "A tracker, API, or tool that actually runs beats a tutorial clone.", "Weekend"],
+          ["proof", "GitHub + demo link post", "Show the repo, a live link, and one technical decision.", "30 min"]
+        ]
       }
     };
 
@@ -1361,12 +1418,15 @@
       ["Data", "Kaggle, freeCodeCamp, Microsoft Learn", "Medium-high with project", "A public dashboard plus a short before/after insight"],
       ["Product", "Great Learning, Google Analytics, Mind the Product", "Medium unless applied", "A one-page PRD or app teardown for a student problem"],
       ["Finance", "Coursera audit courses, CFI free resources, NSE modules", "Brand-sensitive", "A one-company model and a 300-word market memo"],
-      ["Design", "Figma Learn, Material Design, accessibility basics", "Low alone, high with portfolio", "A 3-screen redesign case study explaining your decisions"]
+      ["Design", "Figma Learn, Material Design, accessibility basics", "Low alone, high with portfolio", "A 3-screen redesign case study explaining your decisions"],
+      ["Software", "freeCodeCamp, CS50, The Odin Project", "High with shipped projects", "A deployed mini-app on GitHub with a clear README"]
     ];
 
     /* Certificate catalog. hours/priceNote are best-effort estimates that change over
-       time - treat them as guidance, not contracts. cost: free | cheap | paid. */
-    const certificateData = [
+       time - treat them as guidance, not contracts. cost: free | cheap | paid.
+       This embedded array is the built-in seed AND the offline fallback. When Supabase
+       is configured (see loadCatalog), the live `certificates` table replaces it. */
+    let certificateData = [
       // ---------- MARKETING ----------
       { role: "marketing", provider: "HubSpot Academy", title: "Digital Marketing Certification", cost: "free", priceNote: "Free", hours: 5, level: "Beginner", certType: "Certificate", recognized: true, subjects: ["SEO", "Content", "Social media", "Email", "Analytics"], value: "High beginner signal", url: "https://academy.hubspot.com/courses/digital-marketing", proofTip: "Apply it to your college fest or a local business and post the campaign." },
       { role: "marketing", provider: "HubSpot Academy", title: "Inbound Marketing Certification", cost: "free", priceNote: "Free", hours: 3, level: "Beginner", certType: "Certificate", recognized: true, subjects: ["Inbound", "Funnels", "Lead nurturing", "Content"], value: "Recognizable marketing proof", url: "https://academy.hubspot.com/courses/inbound-marketing", proofTip: "Map an inbound funnel for one product and share it." },
@@ -1399,8 +1459,8 @@
       { role: "product", provider: "UVA / Coursera", title: "Digital Product Management", cost: "paid", priceNote: "Free to audit; cert paid", hours: 25, level: "Intermediate", certType: "Course certificate", recognized: true, subjects: ["Agile", "MVP", "Metrics", "Strategy"], value: "Credible PM brand", url: "https://www.coursera.org/learn/uva-darden-digital-product-management", proofTip: "Write an MVP plan with success metrics for one idea." },
 
       // ---------- FINANCE ----------
-      { role: "finance", provider: "CFI", title: "Accounting Fundamentals", cost: "free", priceNote: "Free", hours: 5, level: "Beginner", certType: "Course", recognized: true, subjects: ["Accounting", "Income statement", "Balance sheet"], value: "Good finance foundation", url: "https://corporatefinanceinstitute.com/course/accounting-fundamentals/", proofTip: "Explain one company's income statement in a post." },
-      { role: "finance", provider: "CFI", title: "Introduction to Corporate Finance", cost: "free", priceNote: "Free", hours: 3, level: "Beginner", certType: "Course", recognized: true, subjects: ["Corporate finance", "Valuation basics", "Capital"], value: "Clear fundamentals", url: "https://corporatefinanceinstitute.com/course/introduction-corporate-finance/", proofTip: "Summarise how one firm raises and uses capital." },
+      { role: "finance", provider: "CFI", title: "Accounting Fundamentals", cost: "free", priceNote: "Free", hours: 5, level: "Beginner", certType: "Course", recognized: true, subjects: ["Accounting", "Income statement", "Balance sheet"], value: "Good finance foundation", url: "https://corporatefinanceinstitute.com/course/learn-accounting-fundamentals-corporate-finance/", proofTip: "Explain one company's income statement in a post." },
+      { role: "finance", provider: "CFI", title: "Introduction to Corporate Finance", cost: "free", priceNote: "Free", hours: 3, level: "Beginner", certType: "Course", recognized: true, subjects: ["Corporate finance", "Valuation basics", "Capital"], value: "Clear fundamentals", url: "https://corporatefinanceinstitute.com/course/introduction-to-corporate-finance/", proofTip: "Summarise how one firm raises and uses capital." },
       { role: "finance", provider: "Yale / Coursera", title: "Financial Markets (Robert Shiller)", cost: "free", priceNote: "Free to audit", hours: 33, level: "Beginner", certType: "Course certificate", recognized: true, subjects: ["Markets", "Risk", "Behavioral finance", "Banking"], value: "Strong brand if completed", url: "https://www.coursera.org/learn/financial-markets-global", proofTip: "Write a 300-word market memo after each module." },
       { role: "finance", provider: "Zerodha Varsity", title: "Stock Markets + Varsity Certified", cost: "free", priceNote: "Free", hours: 30, level: "Beginner", certType: "Certification", recognized: true, subjects: ["Stock markets", "Technical analysis", "Fundamental analysis", "Derivatives"], value: "India-relevant, well known", url: "https://zerodha.com/varsity/", proofTip: "Compare two sectors using public data and post it." },
       { role: "finance", provider: "NISM (SEBI)", title: "Mutual Fund Distributors (Series V-A)", cost: "cheap", priceNote: "~Rs 1,500 exam", hours: 20, level: "Intermediate", certType: "Certification", recognized: true, subjects: ["Mutual funds", "Regulations", "Distribution"], value: "Regulatory, India-specific", url: "https://www.nism.ac.in/certifications/", proofTip: "Explain how an SIP works for a first-time investor." },
@@ -1418,7 +1478,7 @@
       { role: "design", provider: "Interaction Design Foundation", title: "UX Design Courses (IxDF)", cost: "cheap", priceNote: "~$16/mo membership", hours: 25, level: "Beginner", certType: "Course certificates", recognized: true, subjects: ["UX", "Interaction design", "Research", "Usability"], value: "Respected, low cost", url: "https://www.interaction-design.org/", proofTip: "Apply one method to a real student problem and write it up." },
 
       // ---------- UNIVERSITY PROGRAMS (big names) ----------
-      { role: "data", provider: "Harvard / edX", title: "CS50: Introduction to Computer Science", cost: "paid", priceNote: "Free to audit; cert ~$199", hours: 150, level: "Beginner", certType: "Course certificate", recognized: true, subjects: ["Programming", "C", "Python", "SQL", "Algorithms"], value: "Strong, world-famous intro", url: "https://www.edx.org/learn/computer-science/harvard-university-cs50-s-introduction-to-computer-science", proofTip: "Ship your CS50 final project to GitHub with a writeup." },
+      { role: "software", provider: "Harvard / edX", title: "CS50: Introduction to Computer Science", cost: "paid", priceNote: "Free to audit; cert ~$199", hours: 150, level: "Beginner", certType: "Course certificate", recognized: true, subjects: ["Programming", "C", "Python", "SQL", "Algorithms"], value: "Strong, world-famous intro", url: "https://www.edx.org/learn/computer-science/harvard-university-cs50-s-introduction-to-computer-science", proofTip: "Ship your CS50 final project to GitHub with a writeup." },
       { role: "data", provider: "HarvardX / edX", title: "Data Science Professional Certificate", cost: "paid", priceNote: "Free to audit; cert paid", hours: 180, level: "Beginner", certType: "Professional Certificate", recognized: true, subjects: ["R", "Probability", "Inference", "Machine learning"], value: "High, Harvard-backed", url: "https://www.edx.org/professional-certificate/harvardx-data-science", proofTip: "Reproduce one capstone analysis on a dataset you like." },
       { role: "data", provider: "Univ. of Michigan / Coursera", title: "Python for Everybody", cost: "paid", priceNote: "Free to audit; cert paid", hours: 60, level: "Beginner", certType: "Specialization", recognized: true, subjects: ["Python", "Data structures", "SQL", "APIs"], value: "High, beginner favourite", url: "https://www.coursera.org/specializations/python", proofTip: "Build a small script that pulls and analyses real data." },
       { role: "data", provider: "Stanford / DeepLearning.AI", title: "Machine Learning Specialization", cost: "paid", priceNote: "Free to audit; cert paid", hours: 90, level: "Intermediate", certType: "Specialization", recognized: true, subjects: ["Machine learning", "Regression", "Neural networks", "Python"], value: "Strong, Andrew Ng flagship", url: "https://www.coursera.org/specializations/machine-learning-introduction", proofTip: "Train one model and write up what it predicts and why." },
@@ -1439,7 +1499,23 @@
       { role: "marketing", provider: "Meta", title: "Meta Certified Digital Marketing Associate", cost: "paid", priceNote: "Exam ~$99", hours: 30, level: "Beginner", certType: "Certification", recognized: true, subjects: ["Facebook/Instagram ads", "Campaigns", "Measurement"], value: "High paid-social signal", url: "https://www.facebook.com/business/learn/certification", proofTip: "Plan a sample paid-social campaign with KPIs." },
       { role: "product", provider: "Atlassian", title: "Atlassian University (Agile & Jira)", cost: "free", priceNote: "Free courses; exams paid", hours: 10, level: "Beginner", certType: "Courses / Certification", recognized: true, subjects: ["Agile", "Jira", "Scrum", "Backlogs"], value: "Medium, practical Agile", url: "https://university.atlassian.com/", proofTip: "Run a sprint in a free Jira board and document it." },
       { role: "finance", provider: "CFI", title: "Financial Modeling & Valuation Analyst (FMVA)", cost: "paid", priceNote: "~$497 (full program)", hours: 150, level: "Intermediate", certType: "Certification", recognized: true, subjects: ["Financial modeling", "DCF", "Excel", "Valuation"], value: "High finance recognition", url: "https://corporatefinanceinstitute.com/certifications/financial-modeling-valuation-analyst-fmva-program/", proofTip: "Build a 3-statement model and share a teardown." },
-      { role: "design", provider: "Adobe", title: "Adobe Certified Professional (Visual Design)", cost: "paid", priceNote: "Exam ~$150", hours: 40, level: "Beginner", certType: "Certification", recognized: true, subjects: ["Photoshop", "Illustrator", "Visual design"], value: "High creative-tools signal", url: "https://learning.adobe.com/certification.html", proofTip: "Publish a small brand kit made in Adobe tools." }
+      { role: "design", provider: "Adobe", title: "Adobe Certified Professional (Visual Design)", cost: "paid", priceNote: "Exam ~$150", hours: 40, level: "Beginner", certType: "Certification", recognized: true, subjects: ["Photoshop", "Illustrator", "Visual design"], value: "High creative-tools signal", url: "https://learning.adobe.com/certification.html", proofTip: "Publish a small brand kit made in Adobe tools." },
+
+      // ---------- SOFTWARE DEV ----------
+      { role: "software", provider: "freeCodeCamp", title: "Responsive Web Design", cost: "free", priceNote: "Free", hours: 30, level: "Beginner", certType: "Certification", recognized: true, subjects: ["HTML", "CSS", "Flexbox", "Grid", "Accessibility"], value: "Hands-on and free", url: "https://www.freecodecamp.org/learn/2022/responsive-web-design/", proofTip: "Build and deploy one responsive page, share the link." },
+      { role: "software", provider: "freeCodeCamp", title: "JavaScript Algorithms and Data Structures", cost: "free", priceNote: "Free", hours: 30, level: "Beginner", certType: "Certification", recognized: true, subjects: ["JavaScript", "Algorithms", "Data structures", "OOP"], value: "Strong JS foundation", url: "https://www.freecodecamp.org/learn/javascript-algorithms-and-data-structures/", proofTip: "Solve 5 algorithm problems and push them to GitHub." },
+      { role: "software", provider: "The Odin Project", title: "Full Stack JavaScript Path", cost: "free", priceNote: "Free", hours: 120, level: "Beginner", certType: "Curriculum", recognized: true, subjects: ["HTML", "CSS", "JavaScript", "Node", "Git"], value: "Strong, project-heavy", url: "https://www.theodinproject.com/", proofTip: "Ship the capstone full-stack app with a live demo." },
+      { role: "software", provider: "Meta / Coursera", title: "Front-End Developer Professional Certificate", cost: "paid", priceNote: "Free to audit; ~$49/mo for cert", hours: 120, level: "Beginner", certType: "Professional Certificate", recognized: true, subjects: ["React", "JavaScript", "HTML", "CSS", "Git"], value: "High, industry-backed", url: "https://www.coursera.org/professional-certificates/meta-front-end-developer", proofTip: "Use the capstone React app as portfolio proof." },
+      { role: "software", provider: "Google / Coursera", title: "Google IT Automation with Python", cost: "paid", priceNote: "Free to audit; ~$49/mo for cert", hours: 120, level: "Beginner", certType: "Professional Certificate", recognized: true, subjects: ["Python", "Git", "Automation", "Linux"], value: "High, practical", url: "https://www.coursera.org/professional-certificates/google-it-automation", proofTip: "Automate one boring task and post the script." },
+      { role: "software", provider: "IBM / Coursera", title: "Full Stack Software Developer", cost: "paid", priceNote: "Free to audit; ~$49/mo for cert", hours: 140, level: "Beginner", certType: "Professional Certificate", recognized: true, subjects: ["Cloud", "Python", "JavaScript", "Containers"], value: "High, full stack", url: "https://www.coursera.org/professional-certificates/ibm-full-stack-cloud-developer", proofTip: "Deploy one containerised app and write up the stack." },
+      { role: "software", provider: "Amazon (AWS)", title: "AWS Certified Developer - Associate", cost: "paid", priceNote: "Training free; exam ~$150", hours: 60, level: "Intermediate", certType: "Certification", recognized: true, subjects: ["AWS", "SDKs", "Serverless", "DevOps"], value: "High cloud-dev signal", url: "https://aws.amazon.com/certification/certified-developer-associate/", proofTip: "Build one serverless function and explain the design." },
+      { role: "software", provider: "Microsoft Learn", title: "Azure Fundamentals (AZ-900)", cost: "cheap", priceNote: "Training free; exam ~$99", hours: 10, level: "Beginner", certType: "Certification", recognized: true, subjects: ["Cloud", "Azure", "Services", "Pricing"], value: "Recognized cloud badge", url: "https://learn.microsoft.com/credentials/certifications/azure-fundamentals/", proofTip: "Summarise core cloud concepts in one explainer post." },
+      { role: "software", provider: "Great Learning Academy", title: "Full Stack Development (free)", cost: "free", priceNote: "Free", hours: 10, level: "Beginner", certType: "Course certificate", recognized: false, subjects: ["HTML", "CSS", "JavaScript", "Backend"], value: "Free starter, India", url: "https://www.mygreatlearning.com/academy/learn-for-free/courses/full-stack-development", proofTip: "Build one small CRUD app and push it public." },
+      { role: "software", provider: "IIT / NPTEL (SWAYAM)", title: "Data Structures & Algorithms (Java)", cost: "cheap", priceNote: "Free; exam ~Rs 1,000", hours: 40, level: "Beginner", certType: "Certification", recognized: true, subjects: ["DSA", "Java", "Complexity"], value: "Strong India IIT signal", url: "https://onlinecourses.nptel.ac.in/", proofTip: "Implement 5 data structures from scratch on GitHub." },
+
+      // ---------- MORE INDIA OPTIONS ----------
+      { role: "data", provider: "Great Learning Academy", title: "Data Science Foundations (free)", cost: "free", priceNote: "Free", hours: 8, level: "Beginner", certType: "Course certificate", recognized: false, subjects: ["Python", "Statistics", "ML basics"], value: "Free starter, India", url: "https://www.mygreatlearning.com/academy/learn-for-free/courses/data-science-foundations", proofTip: "Analyse one Indian public dataset and post 3 insights." },
+      { role: "finance", provider: "IIT / NPTEL (SWAYAM)", title: "Financial Management (NPTEL)", cost: "cheap", priceNote: "Free; exam ~Rs 1,000", hours: 40, level: "Beginner", certType: "Certification", recognized: true, subjects: ["Corporate finance", "Accounting", "Valuation"], value: "Strong India IIT signal", url: "https://onlinecourses.nptel.ac.in/", proofTip: "Apply one concept to an Indian listed company memo." }
     ];
 
     const PROOF_WEIGHTS = { certificate: 10, project: 18, linkedin: 8, resume: 9, internship: 17, portfolio: 15 };
@@ -1913,6 +1989,7 @@
     loadProfile();
     certRole.value = form.targetRole.value;
     render();
+    loadCatalog();
   </script>
 </body>
 </html>
