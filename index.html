@@ -138,37 +138,6 @@
 
     <main>
       <section class="results" id="results" aria-live="polite" hidden>
-        <aside class="panel scorecard" aria-labelledby="scoreTitle">
-          <div class="score-top">
-            <h2 id="scoreTitle">Shortlist signal</h2>
-            <div class="score-row">
-              <div class="score"><span id="scoreValue">54</span></div>
-              <div class="score-label" id="scoreBand">Promising, thin proof</div>
-            </div>
-            <div class="meter" aria-hidden="true"><span id="scoreMeter"></span></div>
-          </div>
-          <div class="score-body">
-            <ul class="fact-list">
-              <li><span>Target</span><strong id="factTarget">Marketing internship</strong></li>
-              <li><span>Fastest lift</span><strong id="factLift">Add a public campaign teardown</strong></li>
-              <li><span>Share angle</span><strong id="factAngle">Proof over claims</strong></li>
-            </ul>
-            <ul class="score-breakdown" id="scoreBreakdown" aria-label="Score breakdown"></ul>
-
-            <div class="profile" id="profileCard">
-              <div class="profile-head">
-                <div>
-                  <h3 id="profileName">Aarav Mehta</h3>
-                  <p class="mini" id="profileMeta">Mumbai, 2nd year - Commerce / BBA</p>
-                </div>
-                <div class="avatar" id="avatar">AM</div>
-              </div>
-              <p id="profileSummary">Marketing internship candidate with early certificates and campus social proof. Needs one visible project and a cleaner story.</p>
-              <div class="chips" id="profileChips"></div>
-            </div>
-          </div>
-        </aside>
-
         <div class="stack">
           <section class="panel section" aria-labelledby="finderTitle">
             <div class="section-head">
@@ -779,39 +748,6 @@
 
     function render() {
       const profile = getProfile();
-      const role = roleData[profile.role];
-      const score = calculateScore(profile);
-
-      document.querySelector("#scoreValue").textContent = score;
-      document.querySelector("#scoreBand").textContent = scoreBand(score);
-      document.querySelector("#scoreMeter").style.width = score + "%";
-      document.querySelector("#factTarget").textContent = role.label;
-      document.querySelector("#factLift").textContent = liftFor(profile);
-      document.querySelector("#factAngle").textContent = role.angle;
-      document.querySelector("#profileName").textContent = profile.name;
-      document.querySelector("#profileMeta").textContent = `${profile.college} - ${profile.degree}`;
-      document.querySelector("#avatar").textContent = initials(profile.name);
-      document.querySelector("#profileSummary").textContent = dynamicSummary(profile);
-
-      const breakdown = document.querySelector("#scoreBreakdown");
-      breakdown.innerHTML = "";
-      scoreDetails(profile).forEach(([label, value, max]) => {
-        const row = document.createElement("li");
-        const width = Math.min(100, Math.round((value / max) * 100));
-        row.innerHTML = `<span>${label}</span><span class="mini-meter"><span style="--width:${width}%"></span></span><strong>${value}</strong>`;
-        breakdown.appendChild(row);
-      });
-
-      const chips = document.querySelector("#profileChips");
-      chips.innerHTML = "";
-      const chipItems = profile.proofs.length ? profile.proofs : ["No proof yet"];
-      chipItems.forEach(item => {
-        const chip = document.createElement("span");
-        chip.className = "chip";
-        chip.textContent = PROOF_LABELS[item] || item;
-        chips.appendChild(chip);
-      });
-
       renderTierRows(profile.role);
       renderCertificates();
     }

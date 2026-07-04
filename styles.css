@@ -84,7 +84,7 @@
       min-width: 0;
       color: inherit;
       text-decoration: none;
-      font-family: "Trebuchet MS", Verdana, sans-serif;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       font-weight: 800;
       letter-spacing: 0;
     }
@@ -130,7 +130,7 @@
     .pill,
     .stamp,
     .table-label {
-      font-family: "Trebuchet MS", Verdana, sans-serif;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       letter-spacing: 0;
     }
 
@@ -219,7 +219,7 @@
 
     .board-item span {
       color: var(--muted);
-      font-family: "Trebuchet MS", Verdana, sans-serif;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       font-size: 0.82rem;
       font-weight: 700;
       text-transform: uppercase;
@@ -236,7 +236,7 @@
       gap: 8px;
       color: var(--ink);
       background: var(--paper-2);
-      font-family: "Trebuchet MS", Verdana, sans-serif;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       font-size: 0.92rem;
       font-weight: 800;
       text-decoration: none;
@@ -380,7 +380,7 @@
       align-items: center;
       color: var(--muted);
       background: #fffdf8;
-      font-family: "Trebuchet MS", Verdana, sans-serif;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       font-size: 0.86rem;
       font-weight: 800;
       cursor: pointer;
@@ -407,7 +407,7 @@
       align-items: center;
       gap: 8px;
       background: #fffdf8;
-      font-family: "Trebuchet MS", Verdana, sans-serif;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       font-size: 0.88rem;
       font-weight: 700;
     }
@@ -435,10 +435,7 @@
 
     .results {
       margin-top: clamp(20px, 5vw, 54px);
-      display: grid;
-      grid-template-columns: minmax(320px, 0.85fr) minmax(0, 1.15fr);
-      gap: clamp(16px, 3vw, 28px);
-      align-items: start;
+      display: block;
     }
 
     .scorecard {
@@ -546,7 +543,7 @@
       place-items: center;
       color: var(--paper-2);
       background: var(--plum);
-      font-family: "Trebuchet MS", Verdana, sans-serif;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       font-weight: 800;
     }
 
@@ -627,7 +624,7 @@
       border-radius: 50%;
       display: grid;
       place-items: center;
-      font-family: "Trebuchet MS", Verdana, sans-serif;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       font-weight: 800;
       background: var(--mustard);
     }
@@ -644,7 +641,7 @@
       border-radius: 999px;
       color: var(--paper-2);
       background: var(--blue);
-      font-family: "Trebuchet MS", Verdana, sans-serif;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       font-size: 0.74rem;
       font-weight: 800;
     }
@@ -721,7 +718,7 @@
       gap: 10px;
       align-items: center;
       color: var(--muted);
-      font-family: "Trebuchet MS", Verdana, sans-serif;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       font-size: 0.78rem;
       font-weight: 800;
       text-transform: uppercase;
@@ -744,15 +741,15 @@
 
     .finder-controls {
       display: grid;
-      grid-template-columns: 1.2fr repeat(3, minmax(120px, 0.7fr));
+      grid-template-columns: minmax(240px, 2fr) repeat(3, minmax(150px, 1fr));
       gap: 10px;
-      margin-bottom: 14px;
+      margin-bottom: 16px;
     }
 
     .cert-grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 14px;
     }
 
     .cert-card {
@@ -803,7 +800,7 @@
     }
 
     .cert-provider {
-      font-family: "Trebuchet MS", Verdana, sans-serif;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       font-size: 0.72rem;
       font-weight: 800;
       letter-spacing: 0.07em;
@@ -817,27 +814,23 @@
 
     .cred {
       flex: 0 0 auto;
-      padding: 3px 9px;
-      border: 1px solid;
-      border-radius: 999px;
-      font-family: "Trebuchet MS", Verdana, sans-serif;
+      padding: 0;
+      border: 0;
+      background: none;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       font-size: 0.68rem;
       font-weight: 800;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.07em;
       text-transform: uppercase;
       white-space: nowrap;
     }
 
     .cred-yes {
       color: var(--brand-dark);
-      border-color: var(--brand);
-      background: rgba(15, 111, 99, 0.08);
     }
 
     .cred-no {
       color: var(--muted);
-      border-color: var(--line-strong);
-      background: transparent;
     }
 
     .cert-value {
@@ -850,7 +843,7 @@
     .cert-line {
       margin: 1px 0 0;
       color: var(--ink);
-      font-family: "Trebuchet MS", Verdana, sans-serif;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       font-size: 0.8rem;
       font-weight: 700;
     }
@@ -888,7 +881,7 @@
       padding: 0;
       color: var(--brand-dark);
       background: transparent;
-      font-family: "Trebuchet MS", Verdana, sans-serif;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       font-weight: 800;
       text-decoration: underline;
       text-underline-offset: 3px;
@@ -913,7 +906,7 @@
     .table th {
       color: var(--paper-2);
       background: var(--ink);
-      font-family: "Trebuchet MS", Verdana, sans-serif;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       font-size: 0.78rem;
       text-transform: uppercase;
     }
