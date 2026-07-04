@@ -43,7 +43,6 @@
 
       <div class="shell">
         <section class="hero" aria-labelledby="pageTitle">
-          <p class="eyebrow">Free student career launchpad</p>
           <h1 id="pageTitle">Turn messy proof into an internship plan.</h1>
           <p class="lede">Add what you've already done, pick a target role, and get your internship readiness score plus the next moves to make - free, private, in about two minutes.</p>
         </section>
@@ -141,7 +140,6 @@
       <section class="results" id="results" aria-live="polite" hidden>
         <aside class="panel scorecard" aria-labelledby="scoreTitle">
           <div class="score-top">
-            <p class="eyebrow" style="margin-bottom: 10px; color: #f6df8d;">Readiness score</p>
             <h2 id="scoreTitle">Shortlist signal</h2>
             <div class="score-row">
               <div class="score"><span id="scoreValue">54</span></div>
@@ -225,26 +223,6 @@
             </table>
           </section>
 
-          <section class="panel section" aria-labelledby="roadmapTitle">
-            <div class="section-head">
-              <div>
-                <h2 id="roadmapTitle">Next 14 days</h2>
-                <p>Actions that create visible proof, not just private learning.</p>
-              </div>
-              <span class="pill" id="pacePill">3 hrs/week</span>
-            </div>
-            <div class="roadmap" id="roadmap"></div>
-          </section>
-
-          <section class="panel section" aria-labelledby="recTitle">
-            <div class="section-head">
-              <div>
-                <h2 id="recTitle">Recommended proof</h2>
-                <p>Certificate + project + post. That trio gets you shortlisted faster than any single course.</p>
-              </div>
-            </div>
-            <div class="recommendations" id="recommendations"></div>
-          </section>
         </div>
       </section>
 
@@ -814,7 +792,6 @@
       document.querySelector("#profileMeta").textContent = `${profile.college} - ${profile.degree}`;
       document.querySelector("#avatar").textContent = initials(profile.name);
       document.querySelector("#profileSummary").textContent = dynamicSummary(profile);
-      document.querySelector("#pacePill").textContent = `${profile.weeklyTime}+ hrs/week`;
 
       const breakdown = document.querySelector("#scoreBreakdown");
       breakdown.innerHTML = "";
@@ -833,25 +810,6 @@
         chip.className = "chip";
         chip.textContent = PROOF_LABELS[item] || item;
         chips.appendChild(chip);
-      });
-
-      const roadmap = document.querySelector("#roadmap");
-      roadmap.innerHTML = "";
-      role.roadmap.forEach(item => {
-        const step = document.createElement("article");
-        step.className = "step";
-        step.innerHTML = `<div><h3>${item[0]}</h3><p>${item[1]}</p></div><span class="tag">${item[2]}</span>`;
-        roadmap.appendChild(step);
-      });
-
-      const recs = document.querySelector("#recommendations");
-      recs.innerHTML = "";
-      role.recs.forEach(item => {
-        const rec = document.createElement("article");
-        rec.className = "rec";
-        rec.dataset.kind = item[0];
-        rec.innerHTML = `<div><span class="chip">${item[0]}</span><h3>${item[1]}</h3><p>${item[2]}</p></div><div class="rec-foot"><span class="table-label">Effort</span><strong>${item[3]}</strong></div>`;
-        recs.appendChild(rec);
       });
 
       renderTierRows(profile.role);
@@ -952,7 +910,7 @@
       grid.innerHTML = "";
       const doneCount = certificateData.filter(cert => completed.has(cert.title)).length;
       const doneNote = doneCount ? ` · ${doneCount} done` : "";
-      document.querySelector("#certCount").textContent = `${matches.length} match${matches.length === 1 ? "" : "es"}${doneNote}`;
+      document.querySelector("#certCount").textContent = `${matches.length} of ${certificateData.length}${doneNote}`;
 
       if (!matches.length) {
         grid.innerHTML = `<p class="empty">No matches yet. This is a good signal to add that certificate to the seed database.</p>`;

@@ -571,8 +571,12 @@
     }
 
     .pill {
-      color: var(--ink);
-      background: rgba(212, 165, 45, 0.2);
+      color: var(--muted);
+      background: transparent;
+      border-radius: 6px;
+      padding: 6px 10px;
+      white-space: nowrap;
+      letter-spacing: 0.02em;
     }
 
     .stack {
