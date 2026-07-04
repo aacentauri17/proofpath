@@ -1,6 +1,9 @@
 # Vercel
 .vercel
 
+# Secrets - never commit
+.env
+
 # Local tooling / preview config
 .claude/
 .__*

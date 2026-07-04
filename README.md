@@ -114,9 +114,29 @@ rate-limiting / a captcha later if you see abuse.
 
 Once the catalog lives in Supabase, add or edit certs directly in the
 **Table Editor → certificates** — no redeploy needed; students see changes on next load.
-`subjects` is a JSON array, e.g. `["SEO","Email"]`. To regenerate the seed file from the
-embedded array after editing `index.html`, re-run the generator described in the catalog
-comment, or just keep editing in Supabase.
+`subjects` is a JSON array, e.g. `["SEO","Email"]`.
+
+### One-command catalog sync (recommended after expanding `index.html`)
+
+Instead of pasting `supabase/certificates_seed.sql` into the SQL Editor each time,
+push the embedded catalog straight to Supabase:
+
+```bash
+# one-time setup
+cp .env.example .env         # then paste your SUPABASE_URL + SUPABASE_SECRET_KEY
+
+# preview what will be pushed (no writes, no keys needed)
+node tools/sync-catalog.js --dry-run
+
+# push the current catalog from index.html to Supabase
+node tools/sync-catalog.js
+```
+
+It reads `certificateData` from `index.html`, clears the `certificates` table, and
+re-inserts every course, then prints the live row count. Needs Node 18+.
+
+> Uses the **SECRET** key (catalog writes bypass row-level security). Keep `.env`
+> private — it is git-ignored. The publishable key in `index.html` stays read-only.
 
 ### Querying the moat (examples)
 
