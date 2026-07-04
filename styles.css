@@ -780,6 +780,10 @@
       gap: 10px;
     }
 
+    .airec {
+      cursor: default;
+    }
+
     .cert-card.is-top {
       border-color: var(--line-strong);
       border-top: 4px solid var(--mustard);

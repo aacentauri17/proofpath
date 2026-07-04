@@ -126,7 +126,7 @@
             </div>
 
             <div class="form-actions">
-              <button class="btn primary" type="submit">Generate plan</button>
+              <button class="btn primary" type="submit">Get recommendations</button>
               <button class="btn" type="button" id="saveBtn">Save locally</button>
               <button class="btn ghost" type="button" id="resetBtn">Load example</button>
               <span class="mini" id="savedState">Example profile - edit with your own details</span>
@@ -139,6 +139,16 @@
     <main>
       <section class="results" id="results" aria-live="polite" hidden>
         <div class="stack">
+          <section class="panel section" id="recSection" aria-labelledby="recTitle2" hidden>
+            <div class="section-head">
+              <div>
+                <h2 id="recTitle2">Recommended for you</h2>
+                <p>Personalised picks based on your degree, role, and what you have already done.</p>
+              </div>
+            </div>
+            <div id="aiRecs"></div>
+          </section>
+
           <section class="panel section" aria-labelledby="finderTitle">
             <div class="section-head">
               <div>
@@ -989,6 +999,48 @@
       }
     }
 
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+    }
+
+    // Ask the Gemini-backed /api/recommend for personalised picks. Hides the section
+    // gracefully if the API is not configured (e.g. before the key is set) or errors.
+    async function loadAiRecs(profile) {
+      const section = document.querySelector("#recSection");
+      const container = document.querySelector("#aiRecs");
+      section.hidden = false;
+      container.className = "";
+      container.innerHTML = `<p class="mini">Finding your best matches…</p>`;
+      try {
+        const res = await fetch("/api/recommend", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(profile)
+        });
+        if (!res.ok) throw new Error("http " + res.status);
+        const data = await res.json();
+        const recs = data.recommendations || [];
+        if (!recs.length) throw new Error("no recs");
+        container.className = "cert-grid";
+        container.innerHTML = recs.map((r, i) => `
+          <article class="cert-card airec">
+            <div class="cert-top">
+              <span class="cert-provider">${escapeHtml(r.provider || "")}</span>
+              <span class="cred cred-yes">Pick ${i + 1}</span>
+            </div>
+            <h3>${escapeHtml(r.title)}</h3>
+            <p class="cert-value">${escapeHtml(r.reason || "")}</p>
+            ${r.proof ? `<p class="cert-proof"><strong>Build:</strong> ${escapeHtml(r.proof)}</p>` : ""}
+            <div class="cert-actions">
+              <a class="btn ghost" href="${encodeURI(r.url || "#")}" target="_blank" rel="noreferrer">Open</a>
+            </div>
+          </article>`).join("");
+        analytics.track("ai_recs_shown", { role: profile.role, meta: { count: recs.length } });
+      } catch (error) {
+        section.hidden = true;
+      }
+    }
+
     form.addEventListener("submit", event => {
       event.preventDefault();
       render();
@@ -998,13 +1050,13 @@
         role: profile.role,
         degree: profile.degree,
         college: profile.college,
-        score: calculateScore(profile),
         meta: {
           proofs: profile.proofs,
           weekly_time: profile.weeklyTime,
           achievements_len: profile.achievements.trim().length
         }
       });
+      loadAiRecs(profile);
       document.querySelector("#results").scrollIntoView({ behavior: "smooth", block: "start" });
     });
 
