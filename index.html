@@ -43,15 +43,15 @@
 
       <div class="shell">
         <section class="hero" aria-labelledby="pageTitle">
-          <h1 id="pageTitle">Turn messy proof into an internship plan.</h1>
-          <p class="lede">Add what you've already done, pick a target role, and get your internship readiness score plus the next moves to make - free, private, in about two minutes.</p>
+          <h1 id="pageTitle">Find the certificates that actually get you hired.</h1>
+          <p class="lede">Browse 150+ free and low-cost certifications, get picks matched to your degree and target role, and save your own road to your first internship.</p>
         </section>
 
         <section class="panel intake" aria-labelledby="formTitle">
           <div class="panel-head">
             <div>
-              <h2 id="formTitle">Build your proof profile</h2>
-              <p>Start with a quick self-audit. Nothing leaves this browser.</p>
+              <h2 id="formTitle">Get certificates picked for you</h2>
+              <p>Tell us about yourself and we'll match certificates to your degree, role, and experience.</p>
             </div>
             <span class="stamp">100%<br>FREE</span>
           </div>
@@ -137,6 +137,20 @@
     </header>
 
     <main>
+      <section class="results" id="roadsWrap" hidden>
+        <div class="stack">
+          <section class="panel section" aria-labelledby="roadsTitle">
+            <div class="section-head">
+              <div>
+                <h2 id="roadsTitle">My roads</h2>
+                <p>Your saved certificate paths. Tick each one off as you finish it.</p>
+              </div>
+            </div>
+            <div id="roadsList"></div>
+          </section>
+        </div>
+      </section>
+
       <section class="results" id="results" aria-live="polite" hidden>
         <div class="stack">
           <section class="panel section" id="recSection" aria-labelledby="recTitle2" hidden>
@@ -1005,24 +1019,115 @@
 
     // Ask the Gemini-backed /api/recommend for personalised picks. Hides the section
     // gracefully if the API is not configured (e.g. before the key is set) or errors.
-    async function loadAiRecs(profile) {
-      const section = document.querySelector("#recSection");
+    /* ---------- Roads: saved certificate paths with progress ---------- */
+    const roadsKey = "proofpath-roads";
+    let lastRecs = [];
+    let lastRecsRole = "";
+
+    function getRoads() {
+      try { return JSON.parse(localStorage.getItem(roadsKey)) || []; }
+      catch (error) { return []; }
+    }
+
+    function setRoads(roads) {
+      localStorage.setItem(roadsKey, JSON.stringify(roads));
+      renderRoads();
+    }
+
+    function renderRoads() {
+      const wrap = document.querySelector("#roadsWrap");
+      const list = document.querySelector("#roadsList");
+      const roads = getRoads();
+      wrap.hidden = !roads.length;
+      if (!roads.length) { list.innerHTML = ""; return; }
+      const completed = getCompleted();
+      list.innerHTML = roads.map((road, ri) => {
+        const doneCount = road.certs.filter(c => completed.has(c.title)).length;
+        const finished = doneCount === road.certs.length;
+        return `
+        <div class="road" data-road="${ri}">
+          <div class="cert-top">
+            <h3 style="margin: 0;">${escapeHtml(road.name)}${finished ? ` <span class="cred cred-yes">&#10003; Complete</span>` : ""}</h3>
+            <span class="pill">${doneCount} of ${road.certs.length} done</span>
+          </div>
+          <div class="mini-meter" style="margin: 10px 0 12px;"><span style="--width:${Math.round((doneCount / road.certs.length) * 100)}%"></span></div>
+          ${road.certs.map(c => `
+            <label class="check" style="margin-bottom: 8px;">
+              <input type="checkbox" data-road-cert="${escapeHtml(c.title)}" ${completed.has(c.title) ? "checked" : ""}>
+              <span>${escapeHtml(c.title)}<span class="mini" style="display:block; font-weight: 400;">${escapeHtml(c.provider || "")}</span></span>
+              <a class="text-link" style="margin-left:auto;" href="${encodeURI(c.url || "#")}" target="_blank" rel="noreferrer">Open</a>
+            </label>`).join("")}
+          <div class="cert-actions" style="margin-top: 6px;">
+            <button class="text-link" type="button" data-road-delete="${ri}">Remove road</button>
+          </div>
+        </div>`;
+      }).join("");
+    }
+
+    document.querySelector("#roadsList").addEventListener("click", event => {
+      const del = event.target.closest("[data-road-delete]");
+      if (del) {
+        const roads = getRoads();
+        const removed = roads.splice(Number(del.dataset.roadDelete), 1)[0];
+        setRoads(roads);
+        if (removed) analytics.track("road_removed", { meta: { name: removed.name } });
+        return;
+      }
+      const box = event.target.closest("[data-road-cert]");
+      if (box) {
+        const title = box.dataset.roadCert;
+        const completed = getCompleted();
+        if (completed.has(title)) { completed.delete(title); }
+        else {
+          completed.add(title);
+          const cert = findCert(title);
+          analytics.track("cert_completed", { role: cert ? cert.role : null, cert_title: title, cert_provider: cert ? cert.provider : null, meta: { source: "road" } });
+          const roads = getRoads();
+          const road = roads.find(r => r.certs.some(c => c.title === title));
+          if (road && road.certs.every(c => completed.has(c.title) || c.title === title)) {
+            analytics.track("road_completed", { meta: { name: road.name } });
+            showToast(`Road complete: ${road.name} 🎉`);
+          }
+        }
+        setCompleted(completed);
+        renderRoads();
+        renderCertificates();
+      }
+    });
+
+    function saveRoad() {
+      if (!lastRecs.length) return;
+      const label = (roleData[lastRecsRole] || {}).label || lastRecsRole;
+      const name = `Road to ${label.replace(/ internship$/i, "")}`;
+      const roads = getRoads();
+      const certs = lastRecs.map(r => ({ title: r.title, provider: r.provider, url: r.url }));
+      const existing = roads.findIndex(r => r.name === name);
+      if (existing >= 0) roads[existing] = { name, role: lastRecsRole, certs, created: Date.now() };
+      else roads.push({ name, role: lastRecsRole, certs, created: Date.now() });
+      setRoads(roads);
+      analytics.track("road_saved", { role: lastRecsRole, meta: { name, certs: certs.map(c => c.title) } });
+      showToast(`Saved "${name}" - track it at the top of the page.`);
+      document.querySelector("#roadsWrap").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    // Deterministic fallback when the Gemini API is unavailable: top-ranked catalog picks.
+    function fallbackRecs(profile) {
+      return certificateData
+        .filter(cert => cert.role === profile.role)
+        .sort((a, b) => certRank(b, profile.role) - certRank(a, profile.role))
+        .slice(0, 4)
+        .map(cert => ({
+          title: cert.title, provider: cert.provider, url: cert.url,
+          reason: cert.value, proof: cert.proofTip
+        }));
+    }
+
+    function renderRecs(recs, profile, personalised) {
       const container = document.querySelector("#aiRecs");
-      section.hidden = false;
+      const label = (roleData[profile.role] || {}).label || profile.role;
       container.className = "";
-      container.innerHTML = `<p class="mini">Finding your best matches…</p>`;
-      try {
-        const res = await fetch("/api/recommend", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(profile)
-        });
-        if (!res.ok) throw new Error("http " + res.status);
-        const data = await res.json();
-        const recs = data.recommendations || [];
-        if (!recs.length) throw new Error("no recs");
-        container.className = "cert-grid";
-        container.innerHTML = recs.map((r, i) => `
+      container.innerHTML = `
+        <div class="cert-grid">${recs.map((r, i) => `
           <article class="cert-card airec">
             <div class="cert-top">
               <span class="cert-provider">${escapeHtml(r.provider || "")}</span>
@@ -1034,10 +1139,40 @@
             <div class="cert-actions">
               <a class="btn ghost" href="${encodeURI(r.url || "#")}" target="_blank" rel="noreferrer">Open</a>
             </div>
-          </article>`).join("");
+          </article>`).join("")}
+        </div>
+        <div class="cert-actions" style="margin-top: 14px;">
+          <button class="btn primary" type="button" id="saveRoadBtn">Save as my Road to ${escapeHtml(label.replace(/ internship$/i, ""))}</button>
+          <span class="mini">${personalised ? "Personalised picks for your profile." : "Top-rated picks for this role."}</span>
+        </div>`;
+      document.querySelector("#saveRoadBtn").addEventListener("click", saveRoad);
+    }
+
+    async function loadAiRecs(profile) {
+      const section = document.querySelector("#recSection");
+      const container = document.querySelector("#aiRecs");
+      section.hidden = false;
+      container.className = "";
+      container.innerHTML = `<p class="mini">Finding your best matches…</p>`;
+      lastRecsRole = profile.role;
+      try {
+        const res = await fetch("/api/recommend", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(profile)
+        });
+        if (!res.ok) throw new Error("http " + res.status);
+        const data = await res.json();
+        const recs = data.recommendations || [];
+        if (!recs.length) throw new Error("no recs");
+        lastRecs = recs;
+        renderRecs(recs, profile, true);
         analytics.track("ai_recs_shown", { role: profile.role, meta: { count: recs.length } });
       } catch (error) {
-        section.hidden = true;
+        const recs = fallbackRecs(profile);
+        if (!recs.length) { section.hidden = true; return; }
+        lastRecs = recs;
+        renderRecs(recs, profile, false);
       }
     }
 
@@ -1153,6 +1288,7 @@
     loadProfile();
     certRole.value = form.targetRole.value;
     render();
+    renderRoads();
     loadCatalog();
   </script>
 </body>

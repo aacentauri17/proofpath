@@ -784,6 +784,22 @@
       cursor: default;
     }
 
+    .road {
+      padding: 16px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: #fffdf8;
+      margin-bottom: 12px;
+    }
+
+    .road:last-child {
+      margin-bottom: 0;
+    }
+
+    .road .check {
+      cursor: pointer;
+    }
+
     .cert-card.is-top {
       border-color: var(--line-strong);
       border-top: 4px solid var(--mustard);
