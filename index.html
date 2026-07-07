@@ -37,7 +37,6 @@
           <a class="btn ghost" href="/catalog">Browse certificates</a>
           <button class="btn" type="button" id="shareLinkBtn">Share link</button>
           <a class="btn ghost" href="/how-it-works">How it works</a>
-          <button class="btn clay" type="button" id="copyProfileBtn">Copy profile</button>
         </div>
       </nav>
 
@@ -137,9 +136,26 @@
     </header>
 
     <main>
-      <section class="results" id="roadsWrap" hidden>
+      <section class="results" id="mySpace" hidden>
         <div class="stack">
-          <section class="panel section" aria-labelledby="roadsTitle">
+          <section class="panel section" id="profilePanel" aria-labelledby="myProfileTitle">
+            <div class="section-head">
+              <div>
+                <h2 id="myProfileTitle">My profile</h2>
+                <p>We use this to pick your certificates. Edit the form above any time.</p>
+              </div>
+              <div class="avatar" id="avatar">ST</div>
+            </div>
+            <ul class="fact-list">
+              <li><span>Name</span><strong id="pfName"></strong></li>
+              <li><span>College / city</span><strong id="pfCollege"></strong></li>
+              <li><span>Degree</span><strong id="pfDegree"></strong></li>
+              <li><span>Target role</span><strong id="pfRole"></strong></li>
+            </ul>
+            <div class="chips" id="pfChips"></div>
+          </section>
+
+          <section class="panel section" id="roadsPanel" hidden aria-labelledby="roadsTitle">
             <div class="section-head">
               <div>
                 <h2 id="roadsTitle">My roads</h2>
@@ -147,6 +163,17 @@
               </div>
             </div>
             <div id="roadsList"></div>
+          </section>
+
+          <section class="panel section" id="coursesPanel" hidden aria-labelledby="myCoursesTitle">
+            <div class="section-head">
+              <div>
+                <h2 id="myCoursesTitle">My courses</h2>
+                <p>Everything in your roads plus courses you marked completed from the finder.</p>
+              </div>
+              <span class="pill" id="coursesCount"></span>
+            </div>
+            <div id="coursesList"></div>
           </section>
         </div>
       </section>
@@ -194,26 +221,6 @@
               </select>
             </div>
             <div class="cert-grid" id="certificateGrid"></div>
-          </section>
-
-          <section class="panel section" aria-labelledby="tierTitle">
-            <div class="section-head">
-              <div>
-                <h2 id="tierTitle">Which certificates actually help</h2>
-                <p>A certificate alone rarely gets you shortlisted. Here is what to build with each one so it becomes real proof.</p>
-              </div>
-            </div>
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>Track</th>
-                  <th>Where to start (free/cheap)</th>
-                  <th>LinkedIn value</th>
-                  <th>What to build after</th>
-                </tr>
-              </thead>
-              <tbody id="tierRows"></tbody>
-            </table>
           </section>
 
         </div>
@@ -410,15 +417,6 @@
         ]
       }
     };
-
-    const tierData = [
-      ["Marketing", "Google Digital Marketing, HubSpot Academy", "High for beginners", "A campaign teardown with 3 metrics, posted on LinkedIn"],
-      ["Data", "Kaggle, freeCodeCamp, Microsoft Learn", "Medium-high with project", "A public dashboard plus a short before/after insight"],
-      ["Product", "Great Learning, Google Analytics, Mind the Product", "Medium unless applied", "A one-page PRD or app teardown for a student problem"],
-      ["Finance", "Coursera audit courses, CFI free resources, NSE modules", "Brand-sensitive", "A one-company model and a 300-word market memo"],
-      ["Design", "Figma Learn, Material Design, accessibility basics", "Low alone, high with portfolio", "A 3-screen redesign case study explaining your decisions"],
-      ["Software", "freeCodeCamp, CS50, The Odin Project", "High with shipped projects", "A deployed mini-app on GitHub with a clear README"]
-    ];
 
     /* Certificate catalog. hours/priceNote are best-effort estimates that change over
        time - treat them as guidance, not contracts. cost: free | cheap | paid.
@@ -676,7 +674,6 @@
     const form = document.querySelector("#profileForm");
     const saveBtn = document.querySelector("#saveBtn");
     const resetBtn = document.querySelector("#resetBtn");
-    const copyProfileBtn = document.querySelector("#copyProfileBtn");
     const shareLinkBtn = document.querySelector("#shareLinkBtn");
     const certSearch = document.querySelector("#certSearch");
     const certRole = document.querySelector("#certRole");
@@ -771,21 +768,8 @@
     }
 
     function render() {
-      const profile = getProfile();
-      renderTierRows(profile.role);
       renderCertificates();
-    }
-
-    function renderTierRows(role) {
-      const body = document.querySelector("#tierRows");
-      body.innerHTML = "";
-      const matched = role ? tierData.filter(row => row[0].toLowerCase() === role) : tierData;
-      const rows = matched.length ? matched : tierData;
-      rows.forEach(row => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = row.map((cell, index) => `<td>${index === 0 ? `<strong>${cell}</strong>` : cell}</td>`).join("");
-        body.appendChild(tr);
-      });
+      renderMySpace();
     }
 
     function linkedinTier(value) {
@@ -984,20 +968,6 @@
       showToast("Sample restored.");
     }
 
-    async function copyProfile() {
-      const profile = getProfile();
-      const role = roleData[profile.role];
-      const score = calculateScore(profile);
-      const text = `${profile.name} - ${role.label}\nReadiness: ${score}/100 (${scoreBand(score)})\nProof: ${profile.proofs.join(", ") || "starting now"}\nNext move: ${role.lift}\nBuilt with ProofPath`;
-      try {
-        await navigator.clipboard.writeText(text);
-        analytics.track("profile_copied", { role: profile.role, degree: profile.degree, college: profile.college, score });
-        showToast("Profile copied for LinkedIn or WhatsApp.");
-      } catch (error) {
-        showToast("Copy failed. Select the profile text manually.");
-      }
-    }
-
     async function shareProfileLink() {
       const encoded = encodeProfile(getProfile());
       const base = window.location.origin && window.location.origin !== "null"
@@ -1031,14 +1001,81 @@
 
     function setRoads(roads) {
       localStorage.setItem(roadsKey, JSON.stringify(roads));
+      renderMySpace();
+    }
+
+    // Shows the "My space" area (profile + roads + courses) once the student has
+    // engaged: submitted the form, saved a profile, saved a road, or completed a cert.
+    let profileActive = false;
+
+    function renderMySpace() {
+      renderProfilePanel();
       renderRoads();
+      renderMyCourses();
+      const engaged = profileActive
+        || getRoads().length > 0
+        || getCompleted().size > 0
+        || Boolean(localStorage.getItem(storageKey));
+      document.querySelector("#mySpace").hidden = !engaged;
+    }
+
+    function renderProfilePanel() {
+      const profile = getProfile();
+      const role = roleData[profile.role] || {};
+      document.querySelector("#pfName").textContent = profile.name;
+      document.querySelector("#pfCollege").textContent = profile.college;
+      document.querySelector("#pfDegree").textContent = profile.degree;
+      document.querySelector("#pfRole").textContent = role.label || profile.role;
+      document.querySelector("#avatar").textContent = initials(profile.name);
+      const chips = document.querySelector("#pfChips");
+      chips.innerHTML = "";
+      const chipItems = profile.proofs.length ? profile.proofs : ["No proof yet"];
+      chipItems.forEach(item => {
+        const chip = document.createElement("span");
+        chip.className = "chip";
+        chip.textContent = PROOF_LABELS[item] || item;
+        chips.appendChild(chip);
+      });
+    }
+
+    function renderMyCourses() {
+      const panel = document.querySelector("#coursesPanel");
+      const list = document.querySelector("#coursesList");
+      const completed = getCompleted();
+      const courses = new Map();
+      getRoads().forEach(road => {
+        road.certs.forEach(c => courses.set(c.title, { ...c, road: road.name }));
+      });
+      completed.forEach(title => {
+        if (!courses.has(title)) {
+          const cert = findCert(title);
+          courses.set(title, { title, provider: cert ? cert.provider : "", url: cert ? cert.url : "", road: null });
+        }
+      });
+      const rows = [...courses.values()];
+      panel.hidden = !rows.length;
+      if (!rows.length) { list.innerHTML = ""; return; }
+      const doneCount = rows.filter(c => completed.has(c.title)).length;
+      document.querySelector("#coursesCount").textContent = `${doneCount} of ${rows.length} done`;
+      rows.sort((a, b) => Number(completed.has(b.title)) - Number(completed.has(a.title)));
+      list.innerHTML = rows.map(c => {
+        const done = completed.has(c.title);
+        return `
+        <div class="cert-top" style="padding: 11px 0; border-bottom: 1px solid var(--line);">
+          <span>
+            <strong>${escapeHtml(c.title)}</strong>
+            <span class="mini" style="display:block; font-weight: 400;">${escapeHtml(c.provider || "")}${c.road ? ` &middot; ${escapeHtml(c.road)}` : ""}</span>
+          </span>
+          <span class="cred ${done ? "cred-yes" : "cred-no"}">${done ? "&#10003; Completed" : "In progress"}</span>
+        </div>`;
+      }).join("");
     }
 
     function renderRoads() {
-      const wrap = document.querySelector("#roadsWrap");
+      const panel = document.querySelector("#roadsPanel");
       const list = document.querySelector("#roadsList");
       const roads = getRoads();
-      wrap.hidden = !roads.length;
+      panel.hidden = !roads.length;
       if (!roads.length) { list.innerHTML = ""; return; }
       const completed = getCompleted();
       list.innerHTML = roads.map((road, ri) => {
@@ -1090,7 +1127,7 @@
           }
         }
         setCompleted(completed);
-        renderRoads();
+        renderMySpace();
         renderCertificates();
       }
     });
@@ -1107,7 +1144,7 @@
       setRoads(roads);
       analytics.track("road_saved", { role: lastRecsRole, meta: { name, certs: certs.map(c => c.title) } });
       showToast(`Saved "${name}" - track it at the top of the page.`);
-      document.querySelector("#roadsWrap").scrollIntoView({ behavior: "smooth", block: "start" });
+      document.querySelector("#mySpace").scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
     // Deterministic fallback when the Gemini API is unavailable: top-ranked catalog picks.
@@ -1178,6 +1215,7 @@
 
     form.addEventListener("submit", event => {
       event.preventDefault();
+      profileActive = true;
       render();
       document.querySelector("#results").hidden = false;
       const profile = getProfile();
@@ -1198,7 +1236,6 @@
     form.addEventListener("input", render);
     saveBtn.addEventListener("click", saveProfile);
     resetBtn.addEventListener("click", resetSample);
-    copyProfileBtn.addEventListener("click", copyProfile);
     shareLinkBtn.addEventListener("click", shareProfileLink);
     [certSearch, certRole, certCost, certTime].forEach(control => {
       control.addEventListener("input", renderCertificates);
@@ -1258,6 +1295,7 @@
         }
         setCompleted(completed);
         renderCertificates();
+        renderMySpace();
         return;
       }
 
@@ -1288,7 +1326,6 @@
     loadProfile();
     certRole.value = form.targetRole.value;
     render();
-    renderRoads();
     loadCatalog();
   </script>
 </body>
