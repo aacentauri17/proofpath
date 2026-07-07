@@ -74,18 +74,30 @@ function toRow(c) {
   };
 }
 
+// /catalog page's last line of defence: if Supabase is empty/unreachable, it falls
+// back to this static JSON (same shape as the embedded certificateData array) so the
+// page never goes fully blank. Regenerated every run, including --dry-run.
+function writeStaticFallback(catalog) {
+  const outPath = path.join(ROOT, "catalog-data.json");
+  fs.writeFileSync(outPath, JSON.stringify(catalog, null, 0));
+  console.log(`Wrote ${catalog.length} courses to catalog-data.json (static fallback for /catalog)`);
+}
+
 async function main() {
   if (typeof fetch !== "function") {
     console.error("This script needs Node 18+ (built-in fetch). Your version: " + process.version);
     process.exit(1);
   }
 
-  const rows = extractCatalog().map(toRow);
+  const catalog = extractCatalog();
+  const rows = catalog.map(toRow);
   const byRole = rows.reduce((a, r) => ((a[r.role] = (a[r.role] || 0) + 1), a), {});
   console.log(`Read ${rows.length} courses from index.html`, byRole);
 
+  writeStaticFallback(catalog);
+
   if (DRY_RUN) {
-    console.log("--dry-run: no changes made. First row:", JSON.stringify(rows[0], null, 2));
+    console.log("--dry-run: no Supabase changes made. First row:", JSON.stringify(rows[0], null, 2));
     return;
   }
 

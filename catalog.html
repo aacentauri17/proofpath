@@ -22,7 +22,8 @@
       </a>
       <div class="nav-actions">
         <a class="btn ghost" href="/how-it-works">How it works</a>
-        <a class="btn primary" href="/">Get your score</a>
+        <a class="btn nav-btn-badge" href="/#mySpace">My space<span class="badge-count" id="spaceBadge" hidden>0</span></a>
+        <a class="btn primary" href="/">Get certificates picked for me</a>
       </div>
     </nav>
 
@@ -124,6 +125,98 @@
       localStorage.setItem(certOutcomeKey, JSON.stringify(outcomes));
     }
 
+    // "My space" cart - shared with the home page finder via the same localStorage key.
+    const savedCoursesKey = "proofpath-saved-courses";
+
+    function getSavedCourses() {
+      try { return JSON.parse(localStorage.getItem(savedCoursesKey)) || []; }
+      catch (error) { return []; }
+    }
+    function isSaved(title) { return getSavedCourses().some(c => c.title === title); }
+
+    function toggleSaved(cert) {
+      const saved = getSavedCourses();
+      const idx = saved.findIndex(c => c.title === cert.title);
+      let nowSaved;
+      if (idx >= 0) { saved.splice(idx, 1); nowSaved = false; }
+      else {
+        saved.push({
+          title: cert.title, provider: cert.provider, url: cert.url,
+          cost: cert.priceNote || cert.cost, hours: cert.hours, level: cert.level,
+          role: cert.role, addedAt: Date.now()
+        });
+        nowSaved = true;
+      }
+      localStorage.setItem(savedCoursesKey, JSON.stringify(saved));
+      analytics.track(nowSaved ? "course_saved" : "course_unsaved", { role: cert.role, cert_title: cert.title, cert_provider: cert.provider, meta: { source: "catalog" } });
+      updateSpaceBadge();
+      return nowSaved;
+    }
+
+    function updateSpaceBadge() {
+      const count = getSavedCourses().length;
+      const badge = document.querySelector("#spaceBadge");
+      badge.hidden = count === 0;
+      badge.textContent = count;
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+    }
+
+    function currentStudentInfo() {
+      try {
+        const raw = JSON.parse(localStorage.getItem("proofpath-demo-profile") || "null");
+        return { name: raw?.name || "", achievements: raw?.achievements || "" };
+      } catch (error) { return { name: "", achievements: "" }; }
+    }
+
+    function fallbackLinkedInPost(cert) {
+      const tag = String(cert.role || "career").replace(/[^a-z0-9]/gi, "");
+      return [
+        `Just finished "${cert.title}" from ${cert.provider}. 🎓`,
+        "",
+        cert.proofTip ? `Next up: ${cert.proofTip}` : "Excited to put this into practice.",
+        "",
+        `#Certification #${tag} #StudentLife`
+      ].join("\n");
+    }
+
+    async function draftLinkedInPost(cert, container) {
+      if (!container) return;
+      container.innerHTML = `<p class="mini">Writing your post…</p>`;
+      const info = currentStudentInfo();
+      let text;
+      try {
+        const res = await fetch("/api/linkedin-post", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title: cert.title, provider: cert.provider, proofTip: cert.proofTip, role: cert.role, name: info.name, achievements: info.achievements })
+        });
+        if (!res.ok) throw new Error("http " + res.status);
+        const data = await res.json();
+        text = data.post;
+        if (!text) throw new Error("empty");
+      } catch (error) {
+        text = fallbackLinkedInPost(cert);
+      }
+      const safeId = escapeHtml(cert.title).replace(/[^a-z0-9]/gi, "");
+      container.innerHTML = `
+        <label class="label" for="liText-${safeId}">Your draft post</label>
+        <textarea id="liText-${safeId}">${escapeHtml(text)}</textarea>
+        <div class="cert-actions" style="margin-top: 8px;">
+          <button class="text-link" type="button" data-li-copy>Copy post</button>
+          <a class="text-link" href="https://www.linkedin.com/feed/?shareActive=true" target="_blank" rel="noreferrer">Open LinkedIn</a>
+        </div>`;
+      container.querySelector("[data-li-copy]").addEventListener("click", () => {
+        navigator.clipboard.writeText(container.querySelector("textarea").value).then(
+          () => showToast("Post copied - paste it into LinkedIn."),
+          () => showToast("Copy failed. Select the text manually.")
+        );
+      });
+      analytics.track("linkedin_post_drafted", { role: cert.role, cert_title: cert.title, cert_provider: cert.provider, meta: { source: "catalog" } });
+    }
+
     function normalizeCert(row) {
       return {
         role: row.role, provider: row.provider, title: row.title, cost: row.cost,
@@ -214,6 +307,7 @@
       matches.forEach((cert, index) => {
         const done = completed.has(cert.title);
         const outcome = outcomes[cert.title];
+        const saved = isSaved(cert.title);
         const cred = credentialOf(cert);
         const subjects = cert.subjects || [];
         const isOpen = openCards.has(cert.title);
@@ -229,6 +323,7 @@
           <p class="cert-line">${cert.priceNote || cert.cost} &middot; ${cert.hours} hrs &middot; ${cert.level || "All levels"}${done ? ` &middot; <span class="done">&#10003; Completed</span>` : ""}</p>
           <div class="cert-actions">
             <a class="btn ghost" href="${cert.url}" target="_blank" rel="noreferrer" data-open="${cert.title}">Open</a>
+            <button class="save-toggle${saved ? " is-saved" : ""}" type="button" data-save="${cert.title}">${saved ? "&#10003; Saved" : "+ Add to my space"}</button>
             <button class="text-link" type="button" data-toggle aria-expanded="${isOpen}">${isOpen ? "Hide details" : "Details"}</button>
           </div>
           <div class="cert-details"${isOpen ? "" : " hidden"}>
@@ -247,6 +342,7 @@
                   <button class="text-link" type="button" data-outcome="not-yet" data-outcome-cert="${cert.title}">Not yet</button>
                 </div>`)
               : ""}
+            ${done ? `<div class="li-post" id="liPost-${escapeHtml(cert.title).replace(/[^a-z0-9]/gi, "")}"><button class="text-link" type="button" data-linkedin="${cert.title}">Draft a LinkedIn post about this</button></div>` : ""}
           </div>
         `;
         grid.appendChild(card);
@@ -262,6 +358,19 @@
         if (!res.ok) throw new Error("HTTP " + res.status);
         const rows = await res.json();
         certificateData = (rows || []).map(normalizeCert);
+        if (!certificateData.length) throw new Error("empty");
+        renderCertificates();
+        return;
+      } catch (error) {
+        /* fall through to the static fallback below */
+      }
+      // Second line of defence: a static snapshot bundled with the site, in case
+      // Supabase is empty or unreachable. Kept in sync by tools/sync-catalog.js.
+      try {
+        const res = await fetch("/catalog-data.json");
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const rows = await res.json();
+        certificateData = (rows || []).map(cert => ({ ...cert, hours: cert.hours == null ? null : Number(cert.hours) }));
         if (!certificateData.length) throw new Error("empty");
         renderCertificates();
       } catch (error) {
@@ -315,12 +424,28 @@
         );
         return;
       }
+      const saveBtn = event.target.closest("[data-save]");
+      if (saveBtn) {
+        const cert = findCert(saveBtn.dataset.save);
+        if (!cert) return;
+        const nowSaved = toggleSaved(cert);
+        showToast(nowSaved ? "Added to your space." : "Removed from your space.");
+        renderCertificates();
+        return;
+      }
+      const liBtn = event.target.closest("[data-linkedin]");
+      if (liBtn) {
+        const cert = findCert(liBtn.dataset.linkedin);
+        if (cert) draftLinkedInPost(cert, liBtn.closest(".li-post"));
+        return;
+      }
       const toggleBtn = event.target.closest("[data-toggle]");
       if (toggleBtn) { toggleCard(toggleBtn.closest(".cert-card")); return; }
       const card = event.target.closest(".cert-card");
       if (card && !event.target.closest("a, button")) toggleCard(card);
     });
 
+    updateSpaceBadge();
     loadCatalog();
   </script>
 </body>
