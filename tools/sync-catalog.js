@@ -74,13 +74,22 @@ function toRow(c) {
   };
 }
 
-// /catalog page's last line of defence: if Supabase is empty/unreachable, it falls
-// back to this static JSON (same shape as the embedded certificateData array) so the
-// page never goes fully blank. Regenerated every run, including --dry-run.
-function writeStaticFallback(catalog) {
-  const outPath = path.join(ROOT, "catalog-data.json");
-  fs.writeFileSync(outPath, JSON.stringify(catalog, null, 0));
-  console.log(`Wrote ${catalog.length} courses to catalog-data.json (static fallback for /catalog)`);
+// catalog-data.json is the MASTER catalog: the curated entries embedded in
+// index.html plus everything tools/scrape-certs.js has merged in. This function
+// unions the two (curated wins on title collisions) and writes the master back,
+// so re-running never loses scraped entries.
+function buildMaster(curated) {
+  const masterPath = path.join(ROOT, "catalog-data.json");
+  let existing = [];
+  try { existing = JSON.parse(fs.readFileSync(masterPath, "utf8")); } catch (e) { /* first run */ }
+  const norm = t => String(t).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  const merged = new Map();
+  for (const c of existing) merged.set(norm(c.title), c);
+  for (const c of curated) merged.set(norm(c.title), c); // curated wins
+  const catalog = [...merged.values()];
+  fs.writeFileSync(masterPath, JSON.stringify(catalog, null, 0));
+  console.log(`Master catalog-data.json: ${catalog.length} courses (${curated.length} curated, ${catalog.length - curated.length} scraped/other)`);
+  return catalog;
 }
 
 async function main() {
@@ -89,12 +98,12 @@ async function main() {
     process.exit(1);
   }
 
-  const catalog = extractCatalog();
+  const curated = extractCatalog();
+  console.log(`Read ${curated.length} curated courses from index.html`);
+  const catalog = buildMaster(curated);
   const rows = catalog.map(toRow);
   const byRole = rows.reduce((a, r) => ((a[r.role] = (a[r.role] || 0) + 1), a), {});
-  console.log(`Read ${rows.length} courses from index.html`, byRole);
-
-  writeStaticFallback(catalog);
+  console.log("By role:", byRole);
 
   if (DRY_RUN) {
     console.log("--dry-run: no Supabase changes made. First row:", JSON.stringify(rows[0], null, 2));

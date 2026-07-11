@@ -15,3 +15,6 @@ Thumbs.db
 
 # Dependencies (none yet, but safe for later)
 node_modules/
+
+# Scraper backups
+*.bak
