@@ -36,7 +36,6 @@
         <div class="nav-actions">
           <a class="btn ghost" href="/catalog">Browse certificates</a>
           <button class="btn nav-btn-badge" type="button" id="mySpaceBtn">My space<span class="badge-count" id="spaceBadge" hidden>0</span></button>
-          <button class="btn primary" type="button" id="profileBtn">My profile</button>
           <a class="btn ghost" href="/how-it-works">How it works</a>
         </div>
       </nav>
@@ -74,12 +73,12 @@
           <form class="form-grid" id="profileForm">
             <div class="field">
               <label class="label" for="studentName">Name</label>
-              <input id="studentName" name="studentName" autocomplete="name" value="Aarav Mehta">
+              <input id="studentName" name="studentName" autocomplete="name" placeholder="Your name">
             </div>
 
             <div class="field">
               <label class="label" for="college">College or city</label>
-              <input id="college" name="college" value="Mumbai, 2nd year">
+              <input id="college" name="college" placeholder="e.g. NMIMS Mumbai, 2nd year">
             </div>
 
             <div class="field">
@@ -108,9 +107,9 @@
             <div class="field full">
               <span class="label">Current proof</span>
               <div class="checks">
-                <label class="check"><input type="checkbox" name="proof" value="certificate" checked> 1+ certificate</label>
+                <label class="check"><input type="checkbox" name="proof" value="certificate"> 1+ certificate</label>
                 <label class="check"><input type="checkbox" name="proof" value="project"> Public project</label>
-                <label class="check"><input type="checkbox" name="proof" value="linkedin" checked> LinkedIn profile</label>
+                <label class="check"><input type="checkbox" name="proof" value="linkedin"> LinkedIn profile</label>
                 <label class="check"><input type="checkbox" name="proof" value="resume"> Resume draft</label>
                 <label class="check"><input type="checkbox" name="proof" value="internship"> Prior internship</label>
                 <label class="check"><input type="checkbox" name="proof" value="portfolio"> Portfolio link</label>
@@ -131,7 +130,7 @@
 
             <div class="field full">
               <label class="label" for="achievements">Raw achievements</label>
-              <textarea id="achievements" name="achievements">Completed Google Fundamentals of Digital Marketing, managed college fest Instagram, made a basic Excel dashboard.</textarea>
+              <textarea id="achievements" name="achievements" placeholder="e.g. Completed one online course, ran my club's Instagram, built a small Excel dashboard…"></textarea>
             </div>
 
             <div class="form-actions">
@@ -139,7 +138,7 @@
               <button class="btn" type="button" id="saveBtn">Save locally</button>
               <button class="btn ghost" type="button" id="resetBtn">Load example</button>
               <button class="btn ghost" type="button" id="shareLinkBtn">Share link</button>
-              <span class="mini" id="savedState">Example profile - edit with your own details</span>
+              <span class="mini" id="savedState">Not saved yet</span>
             </div>
           </form>
         </section>
@@ -147,48 +146,6 @@
     </div>
 
     <main>
-      <section class="results" id="mySpace" hidden>
-        <div class="stack">
-          <section class="panel section" id="profilePanel" aria-labelledby="myProfileTitle">
-            <div class="section-head">
-              <div>
-                <h2 id="myProfileTitle">My profile</h2>
-                <p>We use this to pick your certificates. Edit the form above any time.</p>
-              </div>
-              <div class="avatar" id="avatar">ST</div>
-            </div>
-            <ul class="fact-list">
-              <li><span>Name</span><strong id="pfName"></strong></li>
-              <li><span>College / city</span><strong id="pfCollege"></strong></li>
-              <li><span>Degree</span><strong id="pfDegree"></strong></li>
-              <li><span>Target role</span><strong id="pfRole"></strong></li>
-            </ul>
-            <div class="chips" id="pfChips"></div>
-          </section>
-
-          <section class="panel section" id="roadsPanel" hidden aria-labelledby="roadsTitle">
-            <div class="section-head">
-              <div>
-                <h2 id="roadsTitle">My roads</h2>
-                <p>Your saved certificate paths. Tick each one off as you finish it.</p>
-              </div>
-            </div>
-            <div id="roadsList"></div>
-          </section>
-
-          <section class="panel section" id="coursesPanel" hidden aria-labelledby="myCoursesTitle">
-            <div class="section-head">
-              <div>
-                <h2 id="myCoursesTitle">My courses</h2>
-                <p>Everything in your roads plus courses you marked completed from the finder.</p>
-              </div>
-              <span class="pill" id="coursesCount"></span>
-            </div>
-            <div id="coursesList"></div>
-          </section>
-        </div>
-      </section>
-
       <section class="results" id="results" aria-live="polite">
         <div class="stack">
           <section class="panel section" id="recSection" aria-labelledby="recTitle2" hidden>
@@ -833,6 +790,14 @@
       return tier === 3 ? "High LinkedIn value" : tier === 2 ? "Medium LinkedIn value" : "Low alone, high with proof";
     }
 
+    // Compact cost indicator for the card's meta line; the full priceNote lives in
+    // the details panel to keep collapsed cards scannable.
+    function costBadge(cert) {
+      if (cert.cost === "free") return "&#127379; Free";               // 🆓
+      if (cert.cost === "cheap") return "&#128176; Low cost";          // 💰
+      return "&#128176; Paid";
+    }
+
     // Rank by relevance to the student's target role, then recruiter recognition and
     // LinkedIn value, then lowest effort (quickest win).
     function certRank(cert, targetRole) {
@@ -929,13 +894,14 @@
             <span class="cred ${cred.has ? "cred-yes" : "cred-no"}">${cred.label}</span>
           </div>
           <h3>${cert.title}</h3>
-          <p class="cert-line">${cert.priceNote || cert.cost} &middot; ${cert.hours} hrs &middot; ${cert.level || "All levels"}${done ? ` &middot; <span class="done">&#10003; Completed</span>` : ""}</p>
+          <p class="cert-line">${costBadge(cert)} &middot; &#9201;&#65039; ${cert.hours} hrs &middot; ${cert.level || "All levels"}${done ? ` &middot; <span class="done">&#10003; Completed</span>` : ""}</p>
           <div class="cert-actions">
             <a class="btn ghost" href="${cert.url}" target="_blank" rel="noreferrer" data-open="${cert.title}">Open</a>
             <button class="save-toggle${saved ? " is-saved" : ""}" type="button" data-save="${cert.title}">${saved ? "&#10003; Saved" : "+ Add to my space"}</button>
             <button class="text-link" type="button" data-toggle aria-expanded="${isOpen}">${isOpen ? "Hide details" : "Details"}</button>
           </div>
           <div class="cert-details"${isOpen ? "" : " hidden"}>
+            ${cert.priceNote ? `<p class="mini">Cost: ${cert.priceNote}</p>` : ""}
             <p class="cert-value">${cert.value}</p>
             ${subjects.length ? `<p class="cert-covers">Covers ${subjects.slice(0, 4).join(", ")}</p>` : ""}
             <p class="cert-proof"><strong>Proof to create:</strong> ${cert.proofTip}</p>
@@ -1015,11 +981,18 @@
     }
 
     function resetSample() {
-      localStorage.removeItem(storageKey);
-      form.reset();
-      document.querySelector("#savedState").textContent = "Unsaved demo profile";
+      applyProfile({
+        name: "Aarav Mehta",
+        college: "NMIMS Mumbai, 2nd year",
+        degree: "Commerce / BBA",
+        role: "marketing",
+        proofs: ["certificate", "linkedin"],
+        weeklyTime: 6,
+        achievements: "Completed Google Fundamentals of Digital Marketing, managed college fest Instagram, made a basic Excel dashboard."
+      });
+      document.querySelector("#savedState").textContent = "Example profile - replace with your details";
       render();
-      showToast("Sample restored.");
+      showToast("Example loaded - edit it with your own details.");
     }
 
     async function shareProfileLink() {
@@ -1109,200 +1082,16 @@
       renderMySpace();
     }
 
-    // Shows the "My space" area (profile + roads + courses) once the student has
-    // engaged: submitted the form, saved a profile, saved a road, completed a cert,
-    // or added a course to their cart.
+    // The full "My space" (profile, roads, courses) lives on /profile now.
+    // On the home page we only keep the nav badge with the saved-courses count.
     let profileActive = false;
 
     function renderMySpace() {
-      renderProfilePanel();
-      renderRoads();
-      renderMyCourses();
       const savedCount = getSavedCourses().length;
-      const engaged = profileActive
-        || getRoads().length > 0
-        || getCompleted().size > 0
-        || savedCount > 0
-        || Boolean(localStorage.getItem(storageKey));
-      document.querySelector("#mySpace").hidden = !engaged;
       const badge = document.querySelector("#spaceBadge");
       badge.hidden = savedCount === 0;
       badge.textContent = savedCount;
     }
-
-    function renderProfilePanel() {
-      const profile = getProfile();
-      const role = roleData[profile.role] || {};
-      document.querySelector("#pfName").textContent = profile.name;
-      document.querySelector("#pfCollege").textContent = profile.college;
-      document.querySelector("#pfDegree").textContent = profile.degree;
-      document.querySelector("#pfRole").textContent = role.label || profile.role;
-      document.querySelector("#avatar").textContent = initials(profile.name);
-      const chips = document.querySelector("#pfChips");
-      chips.innerHTML = "";
-      const chipItems = profile.proofs.length ? profile.proofs : ["No proof yet"];
-      chipItems.forEach(item => {
-        const chip = document.createElement("span");
-        chip.className = "chip";
-        chip.textContent = PROOF_LABELS[item] || item;
-        chips.appendChild(chip);
-      });
-    }
-
-    // Merges roads, saved cart items, and finder-completed titles into one list,
-    // enriched with full catalog details (cost/hours/level) where available.
-    function renderMyCourses() {
-      const panel = document.querySelector("#coursesPanel");
-      const list = document.querySelector("#coursesList");
-      const completed = getCompleted();
-      const savedTitles = new Set(getSavedCourses().map(c => c.title));
-      const courses = new Map();
-
-      function upsert(base, extra) {
-        const full = findCert(base.title) || {};
-        const prior = courses.get(base.title) || {};
-        courses.set(base.title, {
-          title: base.title,
-          provider: base.provider || full.provider || "",
-          url: base.url || full.url || "#",
-          cost: full.priceNote || full.cost || base.cost || "",
-          hours: full.hours || base.hours,
-          level: full.level || base.level,
-          role: full.role || base.role,
-          roads: [...(prior.roads || []), ...(extra && extra.road ? [extra.road] : [])]
-        });
-      }
-
-      getRoads().forEach(road => road.certs.forEach(c => upsert(c, { road: road.name })));
-      getSavedCourses().forEach(c => upsert(c));
-      completed.forEach(title => { if (!courses.has(title)) upsert({ title }); });
-
-      const rows = [...courses.values()];
-      panel.hidden = !rows.length;
-      if (!rows.length) { list.innerHTML = ""; return; }
-      const doneCount = rows.filter(c => completed.has(c.title)).length;
-      document.querySelector("#coursesCount").textContent = `${doneCount} of ${rows.length} done`;
-      rows.sort((a, b) => Number(completed.has(b.title)) - Number(completed.has(a.title)));
-
-      list.innerHTML = rows.map(c => {
-        const done = completed.has(c.title);
-        const meta = [c.cost, c.hours ? `${c.hours} hrs` : null, c.level].filter(Boolean).join(" &middot; ");
-        const tagLine = [meta || null, c.roads.length ? c.roads.join(", ") : null].filter(Boolean).join(" &middot; ");
-        const safeId = escapeHtml(c.title).replace(/[^a-z0-9]/gi, "");
-        return `
-        <div class="road" data-course="${escapeHtml(c.title)}">
-          <div class="cert-top">
-            <span>
-              <strong>${escapeHtml(c.title)}</strong>
-              <span class="mini" style="display:block; font-weight: 400;">${escapeHtml(c.provider || "")}${tagLine ? ` &middot; ${tagLine}` : ""}</span>
-            </span>
-            <span class="cred ${done ? "cred-yes" : "cred-no"}">${done ? "&#10003; Completed" : "In progress"}</span>
-          </div>
-          <div class="cert-actions" style="margin-top: 8px;">
-            <a class="btn ghost" href="${encodeURI(c.url || "#")}" target="_blank" rel="noreferrer">Open</a>
-            <button class="text-link" type="button" data-mycourse-done="${escapeHtml(c.title)}">${done ? "Mark not done" : "Mark completed"}</button>
-            ${savedTitles.has(c.title) ? `<button class="text-link" type="button" data-mycourse-unsave="${escapeHtml(c.title)}">Remove from space</button>` : ""}
-            ${done ? `<button class="text-link" type="button" data-mycourse-linkedin="${escapeHtml(c.title)}">Draft a LinkedIn post</button>` : ""}
-          </div>
-          <div class="li-post" id="myCourseLi-${safeId}"></div>
-        </div>`;
-      }).join("");
-    }
-
-    document.querySelector("#coursesList").addEventListener("click", event => {
-      const doneBtn = event.target.closest("[data-mycourse-done]");
-      if (doneBtn) {
-        const title = doneBtn.dataset.mycourseDone;
-        const completed = getCompleted();
-        const cert = findCert(title);
-        if (completed.has(title)) { completed.delete(title); }
-        else {
-          completed.add(title);
-          analytics.track("cert_completed", { role: cert ? cert.role : null, cert_title: title, cert_provider: cert ? cert.provider : null, meta: { source: "my_courses" } });
-        }
-        setCompleted(completed);
-        renderMySpace();
-        renderCertificates();
-        return;
-      }
-      const unsaveBtn = event.target.closest("[data-mycourse-unsave]");
-      if (unsaveBtn) {
-        const title = unsaveBtn.dataset.mycourseUnsave;
-        const cert = findCert(title) || (getSavedCourses().find(c => c.title === title));
-        if (cert) toggleSaved(cert);
-        showToast("Removed from your space.");
-        renderCertificates();
-        return;
-      }
-      const liBtn = event.target.closest("[data-mycourse-linkedin]");
-      if (liBtn) {
-        const title = liBtn.dataset.mycourseLinkedin;
-        const cert = findCert(title) || (getSavedCourses().find(c => c.title === title));
-        const safeId = escapeHtml(title).replace(/[^a-z0-9]/gi, "");
-        if (cert) draftLinkedInPost(cert, document.querySelector(`#myCourseLi-${safeId}`));
-      }
-    });
-
-    function renderRoads() {
-      const panel = document.querySelector("#roadsPanel");
-      const list = document.querySelector("#roadsList");
-      const roads = getRoads();
-      panel.hidden = !roads.length;
-      if (!roads.length) { list.innerHTML = ""; return; }
-      const completed = getCompleted();
-      list.innerHTML = roads.map((road, ri) => {
-        const doneCount = road.certs.filter(c => completed.has(c.title)).length;
-        const finished = doneCount === road.certs.length;
-        return `
-        <div class="road" data-road="${ri}">
-          <div class="cert-top">
-            <h3 style="margin: 0;">${escapeHtml(road.name)}${finished ? ` <span class="cred cred-yes">&#10003; Complete</span>` : ""}</h3>
-            <span class="pill">${doneCount} of ${road.certs.length} done</span>
-          </div>
-          <div class="mini-meter" style="margin: 10px 0 12px;"><span style="--width:${Math.round((doneCount / road.certs.length) * 100)}%"></span></div>
-          ${road.certs.map(c => `
-            <label class="check" style="margin-bottom: 8px;">
-              <input type="checkbox" data-road-cert="${escapeHtml(c.title)}" ${completed.has(c.title) ? "checked" : ""}>
-              <span>${escapeHtml(c.title)}<span class="mini" style="display:block; font-weight: 400;">${escapeHtml(c.provider || "")}</span></span>
-              <a class="text-link" style="margin-left:auto;" href="${encodeURI(c.url || "#")}" target="_blank" rel="noreferrer">Open</a>
-            </label>`).join("")}
-          <div class="cert-actions" style="margin-top: 6px;">
-            <button class="text-link" type="button" data-road-delete="${ri}">Remove road</button>
-          </div>
-        </div>`;
-      }).join("");
-    }
-
-    document.querySelector("#roadsList").addEventListener("click", event => {
-      const del = event.target.closest("[data-road-delete]");
-      if (del) {
-        const roads = getRoads();
-        const removed = roads.splice(Number(del.dataset.roadDelete), 1)[0];
-        setRoads(roads);
-        if (removed) analytics.track("road_removed", { meta: { name: removed.name } });
-        return;
-      }
-      const box = event.target.closest("[data-road-cert]");
-      if (box) {
-        const title = box.dataset.roadCert;
-        const completed = getCompleted();
-        if (completed.has(title)) { completed.delete(title); }
-        else {
-          completed.add(title);
-          const cert = findCert(title);
-          analytics.track("cert_completed", { role: cert ? cert.role : null, cert_title: title, cert_provider: cert ? cert.provider : null, meta: { source: "road" } });
-          const roads = getRoads();
-          const road = roads.find(r => r.certs.some(c => c.title === title));
-          if (road && road.certs.every(c => completed.has(c.title) || c.title === title)) {
-            analytics.track("road_completed", { meta: { name: road.name } });
-            showToast(`Road complete: ${road.name} 🎉`);
-          }
-        }
-        setCompleted(completed);
-        renderMySpace();
-        renderCertificates();
-      }
-    });
 
     function saveRoad() {
       if (!lastRecs.length) return;
@@ -1315,8 +1104,7 @@
       else roads.push({ name, role: lastRecsRole, certs, created: Date.now() });
       setRoads(roads);
       analytics.track("road_saved", { role: lastRecsRole, meta: { name, certs: certs.map(c => c.title) } });
-      showToast(`Saved "${name}" - track it at the top of the page.`);
-      document.querySelector("#mySpace").scrollIntoView({ behavior: "smooth", block: "start" });
+      showToast(`Saved "${name}" - track it in My space.`);
     }
 
     // Deterministic fallback when the Gemini API is unavailable: top-ranked catalog picks.
@@ -1431,7 +1219,6 @@
       document.body.style.overflow = "";
     }
 
-    document.querySelector("#profileBtn").addEventListener("click", openProfileModal);
     document.querySelector("#heroProfileBtn").addEventListener("click", openProfileModal);
     document.querySelector("#profileModalClose").addEventListener("click", closeProfileModal);
     profileModal.addEventListener("click", event => {
@@ -1441,9 +1228,7 @@
       if (event.key === "Escape" && !profileModal.hidden) closeProfileModal();
     });
     document.querySelector("#mySpaceBtn").addEventListener("click", () => {
-      const wrap = document.querySelector("#mySpace");
-      if (wrap.hidden) { openProfileModal(); return; }
-      wrap.scrollIntoView({ behavior: "smooth", block: "start" });
+      window.location.href = "/profile";
     });
 
     function findCert(title) {
@@ -1545,6 +1330,14 @@
     certRole.value = form.targetRole.value;
     render();
     loadCatalog();
+
+    // /profile redirects here with ?recs=1 after saving, to run recommendations
+    // against the freshly saved profile.
+    if (new URLSearchParams(window.location.search).get("recs")) {
+      profileActive = true;
+      loadAiRecs(getProfile());
+      document.querySelector("#recSection").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   </script>
 </body>
 </html>

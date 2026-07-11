@@ -22,7 +22,7 @@
       </a>
       <div class="nav-actions">
         <a class="btn ghost" href="/how-it-works">How it works</a>
-        <a class="btn nav-btn-badge" href="/#mySpace">My space<span class="badge-count" id="spaceBadge" hidden>0</span></a>
+        <a class="btn nav-btn-badge" href="/profile">My space<span class="badge-count" id="spaceBadge" hidden>0</span></a>
         <a class="btn primary" href="/">Get certificates picked for me</a>
       </div>
     </nav>
@@ -236,6 +236,14 @@
       return (cert.role === targetRole ? 100 : 0) + (cert.recognized ? 12 : 0) + linkedinTier(cert.value || "") * 10 - (cert.hours || 0) * 0.2;
     }
 
+    // Compact cost indicator for the card's meta line; the full priceNote lives in
+    // the details panel to keep collapsed cards scannable.
+    function costBadge(cert) {
+      if (cert.cost === "free") return "&#127379; Free";               // 🆓
+      if (cert.cost === "cheap") return "&#128176; Low cost";          // 💰
+      return "&#128176; Paid";
+    }
+
     const NO_CERTIFICATE_TITLES = new Set([
       "ProductTank Talks & Resources", "Material Design Foundations", "Full Stack JavaScript Path",
       "Tableau Public Training", "Finance & Capital Markets", "Figma for Beginners",
@@ -320,13 +328,14 @@
             <span class="cred ${cred.has ? "cred-yes" : "cred-no"}">${cred.label}</span>
           </div>
           <h3>${cert.title}</h3>
-          <p class="cert-line">${cert.priceNote || cert.cost} &middot; ${cert.hours} hrs &middot; ${cert.level || "All levels"}${done ? ` &middot; <span class="done">&#10003; Completed</span>` : ""}</p>
+          <p class="cert-line">${costBadge(cert)} &middot; &#9201;&#65039; ${cert.hours} hrs &middot; ${cert.level || "All levels"}${done ? ` &middot; <span class="done">&#10003; Completed</span>` : ""}</p>
           <div class="cert-actions">
             <a class="btn ghost" href="${cert.url}" target="_blank" rel="noreferrer" data-open="${cert.title}">Open</a>
             <button class="save-toggle${saved ? " is-saved" : ""}" type="button" data-save="${cert.title}">${saved ? "&#10003; Saved" : "+ Add to my space"}</button>
             <button class="text-link" type="button" data-toggle aria-expanded="${isOpen}">${isOpen ? "Hide details" : "Details"}</button>
           </div>
           <div class="cert-details"${isOpen ? "" : " hidden"}>
+            ${cert.priceNote ? `<p class="mini">Cost: ${cert.priceNote}</p>` : ""}
             <p class="cert-value">${cert.value}</p>
             ${subjects.length ? `<p class="cert-covers">Covers ${subjects.slice(0, 4).join(", ")}</p>` : ""}
             <p class="cert-proof"><strong>Proof to create:</strong> ${cert.proofTip}</p>
