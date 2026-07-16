@@ -1,4 +1,4 @@
--- ProofPath Supabase schema
+-- CredKit Supabase schema
 -- Run this once in the Supabase SQL Editor, then run certificates_seed.sql.
 
 -- =========================================================================

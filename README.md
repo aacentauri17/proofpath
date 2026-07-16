@@ -1,4 +1,4 @@
-# ProofPath
+# CredKit
 
 A free, zero-backend student career launchpad. Students enter their degree, college,
 target role, and existing proof (certificates, projects, LinkedIn, resume, internships,
@@ -48,7 +48,7 @@ python -m http.server 3000
 1. Create a repo and push:
    ```bash
    git add .
-   git commit -m "ProofPath MVP"
+   git commit -m "CredKit MVP"
    git branch -M main
    git remote add origin https://github.com/<you>/proofpath.git
    git push -u origin main

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
- * Sync the ProofPath certificate catalog from index.html into Supabase.
+ * Sync the CredKit certificate catalog from index.html into Supabase.
  *
  *   node tools/sync-catalog.js            # push the catalog
  *   node tools/sync-catalog.js --dry-run  # show what would happen, no writes

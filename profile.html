@@ -3,10 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>My space - ProofPath</title>
+  <title>My space - CredKit</title>
   <meta name="description" content="Your profile, saved certificates, and certificate roads - track everything you're working toward in one place.">
-  <meta name="theme-color" content="#0f6f63">
+  <meta name="theme-color" content="#070b16">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
@@ -14,11 +17,12 @@
     <nav class="nav" aria-label="Primary">
       <a class="brand" href="/">
         <svg class="brand-logo" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
-          <rect width="36" height="36" rx="9" fill="var(--ink)"></rect>
-          <path d="M8.5 19.5l5.5 5.5L28 9.5" fill="none" stroke="var(--mustard)" stroke-width="3.1" stroke-linecap="round" stroke-linejoin="round"></path>
-          <circle cx="28" cy="9.5" r="2.7" fill="var(--brand)"></circle>
+          <rect x="10" y="3" width="21" height="21" rx="5.5" fill="#cf8047" opacity="0.35"></rect>
+          <rect x="6.5" y="7.5" width="21" height="21" rx="5.5" fill="#cf8047" opacity="0.7"></rect>
+          <rect x="3" y="12" width="21" height="21" rx="5.5" fill="#f5f7fa"></rect>
+          <path d="M8.5 23l4 4 8-9" fill="none" stroke="#0b1224" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path>
         </svg>
-        <span>ProofPath</span>
+        <span>CredKit</span>
       </a>
       <div class="nav-actions">
         <a class="btn ghost" href="/catalog">Browse certificates</a>
@@ -40,7 +44,7 @@
               <h2 id="formTitle">My profile</h2>
               <p>We use this to pick certificates for you. Nothing leaves this browser unless you share it.</p>
             </div>
-            <div class="avatar" id="avatar" style="border-color: var(--paper-2);">ST</div>
+            <div class="avatar" id="avatar">ST</div>
           </div>
 
           <form class="form-grid" id="profileForm">
@@ -540,5 +544,6 @@
       loadCatalog();
     })();
   </script>
+  <script src="/ui.js" defer></script>
 </body>
 </html>

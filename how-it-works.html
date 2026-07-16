@@ -3,10 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>How it works - ProofPath</title>
-  <meta name="description" content="How ProofPath turns your scattered achievements into an internship readiness score, a shareable proof profile, and the next best actions.">
-  <meta name="theme-color" content="#0f6f63">
+  <title>How it works - CredKit</title>
+  <meta name="description" content="How CredKit turns your scattered achievements into an internship readiness score, a shareable proof profile, and the next best actions.">
+  <meta name="theme-color" content="#070b16">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
@@ -14,11 +17,12 @@
     <nav class="nav" aria-label="Primary">
       <a class="brand" href="/">
         <svg class="brand-logo" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
-          <rect width="36" height="36" rx="9" fill="var(--ink)"></rect>
-          <path d="M8.5 19.5l5.5 5.5L28 9.5" fill="none" stroke="var(--mustard)" stroke-width="3.1" stroke-linecap="round" stroke-linejoin="round"></path>
-          <circle cx="28" cy="9.5" r="2.7" fill="var(--brand)"></circle>
+          <rect x="10" y="3" width="21" height="21" rx="5.5" fill="#cf8047" opacity="0.35"></rect>
+          <rect x="6.5" y="7.5" width="21" height="21" rx="5.5" fill="#cf8047" opacity="0.7"></rect>
+          <rect x="3" y="12" width="21" height="21" rx="5.5" fill="#f5f7fa"></rect>
+          <path d="M8.5 23l4 4 8-9" fill="none" stroke="#0b1224" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path>
         </svg>
-        <span>ProofPath</span>
+        <span>CredKit</span>
       </a>
       <div class="nav-actions">
         <a class="btn ghost" href="/catalog">Browse certificates</a>
@@ -29,7 +33,7 @@
     <main>
       <section style="padding: clamp(24px, 5vw, 56px) 0 clamp(8px, 2vw, 16px);">
         <h1>Every certificate worth doing, and your road through them.</h1>
-        <p class="lede">ProofPath is a free database of 150+ certifications across marketing, data, product, finance, design, and software - with picks matched to you and a saved road you can tick off as you go.</p>
+        <p class="lede">CredKit is a free database of 150+ certifications across marketing, data, product, finance, design, and software - with picks matched to you and a saved road you can tick off as you go.</p>
       </section>
 
       <section class="growth" aria-label="The four steps">
@@ -58,12 +62,13 @@
         </ul>
       </section>
 
-      <section style="padding: clamp(24px, 5vw, 54px) 0 clamp(28px, 6vw, 64px); border-top: 2px solid var(--ink); margin-top: clamp(20px, 5vw, 54px);">
+      <section style="padding: clamp(24px, 5vw, 54px) 0 clamp(28px, 6vw, 64px); border-top: 1px solid var(--line); margin-top: clamp(20px, 5vw, 54px);">
         <h2>Ready to start your road?</h2>
         <p class="lede" style="margin-bottom: 18px;">It is free, private, and takes about two minutes.</p>
         <a class="btn primary" href="/">Get your picks</a>
       </section>
     </main>
   </div>
+  <script src="/ui.js" defer></script>
 </body>
 </html>

@@ -3,10 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Certificate catalog - ProofPath</title>
+  <title>Certificate catalog - CredKit</title>
   <meta name="description" content="Browse free and low-cost certifications across marketing, data, product, finance, design, and software - each with the proof to build after.">
-  <meta name="theme-color" content="#0f6f63">
+  <meta name="theme-color" content="#070b16">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
@@ -14,11 +17,12 @@
     <nav class="nav" aria-label="Primary">
       <a class="brand" href="/">
         <svg class="brand-logo" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
-          <rect width="36" height="36" rx="9" fill="var(--ink)"></rect>
-          <path d="M8.5 19.5l5.5 5.5L28 9.5" fill="none" stroke="var(--mustard)" stroke-width="3.1" stroke-linecap="round" stroke-linejoin="round"></path>
-          <circle cx="28" cy="9.5" r="2.7" fill="var(--brand)"></circle>
+          <rect x="10" y="3" width="21" height="21" rx="5.5" fill="#cf8047" opacity="0.35"></rect>
+          <rect x="6.5" y="7.5" width="21" height="21" rx="5.5" fill="#cf8047" opacity="0.7"></rect>
+          <rect x="3" y="12" width="21" height="21" rx="5.5" fill="#f5f7fa"></rect>
+          <path d="M8.5 23l4 4 8-9" fill="none" stroke="#0b1224" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path>
         </svg>
-        <span>ProofPath</span>
+        <span>CredKit</span>
       </a>
       <div class="nav-actions">
         <a class="btn ghost" href="/how-it-works">How it works</a>
@@ -244,6 +248,12 @@
       return "&#128176; Paid";
     }
 
+    // Provider initials shown on the card's square visual tile.
+    function tileMark(provider) {
+      return String(provider || "?").split(/[\s/]+/).filter(Boolean).slice(0, 2)
+        .map(w => w[0].toUpperCase()).join("");
+    }
+
     const NO_CERTIFICATE_TITLES = new Set([
       "ProductTank Talks & Resources", "Material Design Foundations", "Full Stack JavaScript Path",
       "Tableau Public Training", "Finance & Capital Markets", "Figma for Beginners",
@@ -323,16 +333,24 @@
         card.className = "cert-card" + (index === 0 && role !== "all" ? " is-top" : "") + (isOpen ? " is-open" : "");
         card.dataset.title = cert.title;
         card.innerHTML = `
-          <div class="cert-top">
-            <span class="cert-provider">${index === 0 && role !== "all" ? `<span class="top-flag">Top pick</span> &middot; ` : ""}${cert.provider}</span>
-            <span class="cred ${cred.has ? "cred-yes" : "cred-no"}">${cred.label}</span>
+          <div class="cert-head">
+            <div class="cert-tile" data-role="${cert.role}">${tileMark(cert.provider)}</div>
+            <div class="cert-body">
+              <div class="cert-top">
+                <span class="cert-provider">${index === 0 && role !== "all" ? `<span class="top-flag">Top pick</span> &middot; ` : ""}${cert.provider}</span>
+                <span class="cred ${cred.has ? "cred-yes" : "cred-no"}">${cred.label}</span>
+              </div>
+              <h3>${cert.title}</h3>
+              <p class="cert-line">${costBadge(cert)} &middot; &#9201;&#65039; ${cert.hours} hrs &middot; ${cert.level || "All levels"}${done ? ` &middot; <span class="done">&#10003; Completed</span>` : ""}</p>
+            </div>
           </div>
-          <h3>${cert.title}</h3>
-          <p class="cert-line">${costBadge(cert)} &middot; &#9201;&#65039; ${cert.hours} hrs &middot; ${cert.level || "All levels"}${done ? ` &middot; <span class="done">&#10003; Completed</span>` : ""}</p>
-          <div class="cert-actions">
-            <a class="btn ghost" href="${cert.url}" target="_blank" rel="noreferrer" data-open="${cert.title}">Open</a>
-            <button class="save-toggle${saved ? " is-saved" : ""}" type="button" data-save="${cert.title}">${saved ? "&#10003; Saved" : "+ Add to my space"}</button>
-            <button class="text-link" type="button" data-toggle aria-expanded="${isOpen}">${isOpen ? "Hide details" : "Details"}</button>
+          <div class="cert-foot">
+            <span class="tag-chip">${cert.role}</span>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <button class="text-link" type="button" data-toggle aria-expanded="${isOpen}">${isOpen ? "Hide" : "Details"}</button>
+              <a class="icon-btn open-btn" href="${cert.url}" target="_blank" rel="noreferrer" data-open="${cert.title}" aria-label="Open course" title="Open course">&#8599;</a>
+              <button class="save-toggle${saved ? " is-saved" : ""}" type="button" data-save="${cert.title}" aria-label="${saved ? "Remove from my space" : "Add to my space"}" title="${saved ? "Saved - click to remove" : "Add to my space"}">${saved ? "&#10003;" : "+"}</button>
+            </div>
           </div>
           <div class="cert-details"${isOpen ? "" : " hidden"}>
             ${cert.priceNote ? `<p class="mini">Cost: ${cert.priceNote}</p>` : ""}
@@ -457,5 +475,6 @@
     updateSpaceBadge();
     loadCatalog();
   </script>
+  <script src="/ui.js" defer></script>
 </body>
 </html>
