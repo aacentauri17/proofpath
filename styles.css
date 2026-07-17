@@ -17,13 +17,13 @@
   --line: rgba(255, 255, 255, 0.08);
   --line-strong: rgba(255, 255, 255, 0.16);
 
-  --card: linear-gradient(165deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.03));
-  --card-border: rgba(255, 255, 255, 0.14);
+  --card: linear-gradient(160deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.05) 42%, rgba(255, 255, 255, 0.08) 100%);
+  --card-border: rgba(255, 255, 255, 0.18);
   --card-ink: #eef1f7;
   --card-muted: #9aa3b8;
   --card-line: rgba(255, 255, 255, 0.12);
-  --card-fill: rgba(255, 255, 255, 0.06);
-  --card-blur: blur(22px) saturate(150%);
+  --card-fill: rgba(255, 255, 255, 0.07);
+  --card-blur: blur(26px) saturate(160%) brightness(1.05);
 
   --accent: #cf8047;        /* warm amber (Lumora accent family) */
   --accent-deep: #97501f;
@@ -83,14 +83,29 @@ img { display: block; }
   gap: clamp(16px, 3vw, 28px);
 }
 
-/* ---------------- Nav ---------------- */
+/* ---------------- Nav: floating translucent glass bar ---------------- */
 .nav {
+  position: sticky;
+  top: 12px;
+  z-index: 45;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--line);
+  padding: 13px 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: rgba(11, 18, 36, 0.62);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.07) inset, 0 14px 32px rgba(2, 4, 10, 0.4);
+  transition: transform 0.45s var(--ease-spring), opacity 0.45s var(--ease-spring);
+}
+
+/* Hidden on scroll-down; ui.js restores it on scroll-up or cursor-near-top. */
+.nav.nav-hidden {
+  transform: translateY(-135%);
+  opacity: 0;
 }
 
 .brand {
@@ -445,52 +460,56 @@ select option { background: var(--bg-2); color: var(--ink); }
   margin-bottom: 18px;
 }
 
-/* ---------------- View toggle (Grid / Deck) ---------------- */
-.view-toggle {
-  display: inline-flex;
-  gap: 2px;
-  padding: 3px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.view-toggle button {
-  border: 0;
-  border-radius: var(--radius-pill);
-  padding: 7px 16px;
-  color: var(--muted);
-  background: transparent;
-  font-size: 0.82rem;
-  font-weight: 600;
-  transition: background 0.3s var(--ease-hover), color 0.3s var(--ease-hover);
-}
-
-.view-toggle button.is-active {
-  color: #fff;
-  background: linear-gradient(to bottom right, var(--accent), var(--accent-deep));
-}
-
 /* ---------------- Almanac certificate cards ---------------- */
 .cert-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 22px;
 }
 
-/* ---------------- Deck mode: big interactive card stack ---------------- */
-.deck-wrap {
+/* ---------------- Deck overlay: click any grid card to open it centered,
+   enlarged, with the rest of the filtered list fanned behind it to the
+   right - drag, scroll, or arrow-key through from there. ---------------- */
+.deck-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 22px;
-  padding: 12px 0 8px;
+  justify-content: center;
+  gap: 24px;
+  padding: clamp(16px, 4vw, 48px);
+  background: rgba(3, 5, 11, 0.74);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
+
+.deck-overlay[hidden] { display: none !important; }
+
+.deck-overlay-close {
+  position: fixed;
+  top: 22px;
+  right: 22px;
+  z-index: 2;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--ink);
+  font-size: 1.3rem;
+  display: grid;
+  place-items: center;
+  transition: background 0.3s var(--ease-hover), transform 0.3s var(--ease-hover);
+}
+
+.deck-overlay-close:hover { background: rgba(255, 255, 255, 0.16); transform: scale(1.08); }
 
 .deck-stack {
   position: relative;
-  width: min(30rem, 92vw);
-  min-height: 30rem;
+  width: min(36rem, 92vw);
+  min-height: 36rem;
   touch-action: pan-y;
 }
 
@@ -502,16 +521,18 @@ select option { background: var(--bg-2); color: var(--ink); }
   border: 1px solid var(--card-border);
   backdrop-filter: var(--card-blur);
   -webkit-backdrop-filter: var(--card-blur);
-  box-shadow: 0 12px 30px rgba(2, 4, 10, 0.35);
-  transform-origin: bottom center;
+  box-shadow: 0 12px 30px rgba(2, 4, 10, 0.4);
+  transform-origin: center left;
   pointer-events: none;
 }
 
-.deck-ghost.g1 { transform: translateY(-14px) scale(0.96) rotate(-2deg); opacity: 0.75; z-index: 1; }
-.deck-ghost.g2 { transform: translateY(-26px) scale(0.92) rotate(2.4deg); opacity: 0.45; z-index: 0; }
+/* Ghosts fan out behind and to the right, echoing a real hand of cards. */
+.deck-ghost.g1 { transform: translate(22px, 10px) scale(0.95) rotate(3deg); opacity: 0.65; z-index: 1; }
+.deck-ghost.g2 { transform: translate(42px, 20px) scale(0.9) rotate(5.5deg); opacity: 0.35; z-index: 0; }
 
 .deck-card {
   position: relative;
+  overflow: hidden;
   z-index: 2;
   height: 100%;
   border-radius: var(--radius-card);
@@ -520,10 +541,10 @@ select option { background: var(--bg-2); color: var(--ink); }
   backdrop-filter: var(--card-blur);
   -webkit-backdrop-filter: var(--card-blur);
   color: var(--card-ink);
-  padding: 26px;
+  padding: 32px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.09) inset, 0 24px 60px rgba(2, 4, 10, 0.55);
   cursor: grab;
   transition: transform 0.45s var(--ease-spring), opacity 0.45s var(--ease-spring), box-shadow 0.3s ease;
@@ -535,6 +556,33 @@ select option { background: var(--bg-2); color: var(--ink); }
 .deck-card.is-leaving-left { transform: translateX(-140%) rotate(-10deg); opacity: 0; }
 .deck-card.is-leaving-right { transform: translateX(140%) rotate(10deg); opacity: 0; }
 .deck-card.is-entering { transform: scale(0.94); opacity: 0; }
+
+/* Realistic glass: a soft diagonal light sweep + a bright top edge, like light
+   catching a pane of frosted glass. Purely decorative, sits above the blur. */
+.cert-card::before,
+.deck-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0) 26%, rgba(255, 255, 255, 0) 74%, rgba(255, 255, 255, 0.05) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.cert-card::after,
+.deck-card::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.55) 30%, rgba(255, 255, 255, 0.55) 70%, rgba(255, 255, 255, 0) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.cert-card > *, .deck-card > * { position: relative; z-index: 1; }
 
 .deck-tile {
   width: 5.5rem;
@@ -564,27 +612,63 @@ select option { background: var(--bg-2); color: var(--ink); }
   padding: 5px;
 }
 
-.deck-head { display: flex; gap: 14px; align-items: center; }
+.deck-head { display: flex; gap: 16px; align-items: center; }
 
-.deck-titles { min-width: 0; display: grid; gap: 4px; }
+.deck-titles { min-width: 0; display: grid; gap: 5px; }
 
 .deck-provider {
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--card-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.deck-card h3 { font-size: 1.4rem; line-height: 1.2; }
+.deck-card h3 {
+  font-size: 1.4rem;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 
 .deck-line { color: var(--card-muted); font-size: 0.88rem; font-weight: 500; }
 
-.deck-value { color: var(--card-ink); font-size: 0.98rem; line-height: 1.55; flex: 1; }
+.deck-value {
+  color: var(--card-ink);
+  font-size: 0.98rem;
+  line-height: 1.55;
+  flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 
-.deck-covers { color: var(--card-muted); font-size: 0.85rem; font-style: italic; }
+.deck-covers {
+  color: var(--card-muted);
+  font-size: 0.85rem;
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
-.deck-proof { background: var(--card-fill); border-radius: var(--radius-control); padding: 12px 14px; font-size: 0.9rem; color: var(--card-ink); }
+.deck-proof {
+  background: var(--card-fill);
+  border-radius: var(--radius-control);
+  padding: 12px 14px;
+  font-size: 0.9rem;
+  color: var(--card-ink);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 
 .deck-foot {
   display: flex;
@@ -620,7 +704,10 @@ select option { background: var(--bg-2); color: var(--ink); }
 }
 
 .cert-card {
-  padding: 14px;
+  position: relative;
+  overflow: hidden;
+  min-height: 15.5rem;
+  padding: 22px;
   border: 1px solid var(--card-border);
   border-radius: var(--radius-card-sm);
   background: var(--card);
@@ -628,7 +715,8 @@ select option { background: var(--bg-2); color: var(--ink); }
   -webkit-backdrop-filter: var(--card-blur);
   color: var(--card-ink);
   display: grid;
-  gap: 10px;
+  align-content: start;
+  gap: 16px;
   cursor: pointer;
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset, 0 10px 26px rgba(2, 4, 10, 0.35);
   transition: transform 0.45s var(--ease-spring), box-shadow 0.45s var(--ease-spring), border-color 0.45s var(--ease-spring);
@@ -645,13 +733,22 @@ select option { background: var(--bg-2); color: var(--ink); }
 
 .cert-card.is-top { box-shadow: 0 0 0 2px var(--accent); }
 
-.cert-card h3 { margin: 0; color: var(--card-ink); }
+.cert-card h3 {
+  margin: 0;
+  color: var(--card-ink);
+  font-size: 1.08rem;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 
 /* Header: square tile left, meta + title right (almanac anatomy) */
 .cert-head {
   display: grid;
-  grid-template-columns: 5.5rem minmax(0, 1fr);
-  gap: 12px;
+  grid-template-columns: 6rem minmax(0, 1fr);
+  gap: 14px;
   align-items: start;
 }
 
@@ -659,7 +756,7 @@ select option { background: var(--bg-2); color: var(--ink); }
    neutral initials if none loads). No colour-coding, no decoration. */
 .cert-tile {
   aspect-ratio: 1;
-  width: 5.5rem;
+  width: 6rem;
   border-radius: 0.875rem;
   display: grid;
   place-items: center;
@@ -667,7 +764,7 @@ select option { background: var(--bg-2); color: var(--ink); }
   overflow: hidden;
   color: var(--card-muted);
   font-weight: 700;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   letter-spacing: 0.02em;
   user-select: none;
   background: rgba(255, 255, 255, 0.07);
@@ -689,7 +786,7 @@ select option { background: var(--bg-2); color: var(--ink); }
 
 .tile-fallback { position: relative; }
 
-.cert-body { display: grid; gap: 5px; align-content: start; min-width: 0; }
+.cert-body { display: grid; gap: 7px; align-content: start; min-width: 0; }
 
 .cert-top {
   display: flex;
@@ -723,17 +820,18 @@ select option { background: var(--bg-2); color: var(--ink); }
   white-space: nowrap;
 }
 
-.cred-yes { color: var(--good); }
+.cred-yes { color: var(--accent); }
 .cred-no { color: var(--card-muted); }
 
 .cert-line {
   margin: 0;
   color: var(--card-muted);
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 500;
+  line-height: 1.4;
 }
 
-.cert-line .done { color: var(--good); font-weight: 700; }
+.cert-line .done { color: var(--accent); font-weight: 700; }
 
 /* Footer: tag chip left, circular actions right */
 .cert-foot {
@@ -748,17 +846,17 @@ select option { background: var(--bg-2); color: var(--ink); }
   display: inline-flex;
   align-items: center;
   border-radius: 0.5rem;
-  padding: 5px 9px;
+  padding: 6px 11px;
   background: var(--card-fill);
   color: var(--card-muted);
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   font-weight: 600;
   text-transform: capitalize;
 }
 
 .icon-btn {
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 2.5rem;
+  height: 2.5rem;
   flex: 0 0 auto;
   display: inline-grid;
   place-items: center;
@@ -777,8 +875,8 @@ select option { background: var(--bg-2); color: var(--ink); }
 .icon-btn.open-btn:hover { background: rgba(255, 255, 255, 0.18); }
 
 .save-toggle {
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 2.5rem;
+  height: 2.5rem;
   flex: 0 0 auto;
   display: inline-grid;
   place-items: center;

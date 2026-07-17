@@ -67,12 +67,8 @@
             <option value="weekend">Weekend</option>
           </select>
         </div>
-        <div class="view-toggle" role="group" aria-label="View mode" style="margin-bottom: 16px;">
-          <button type="button" id="viewGridBtn" class="is-active">Grid</button>
-          <button type="button" id="viewDeckBtn">Deck</button>
-        </div>
         <div class="cert-grid" id="certificateGrid"></div>
-        <div class="deck-wrap" id="deckWrap" hidden></div>
+        <div class="deck-overlay" id="deckOverlay" hidden></div>
       </section>
     </main>
   </div>
@@ -290,23 +286,6 @@
       return { label: "Certificate", has: true };
     }
 
-    const openCards = new Set();
-    function toggleCard(card) {
-      if (!card) return;
-      const details = card.querySelector(".cert-details");
-      if (!details) return;
-      const title = card.dataset.title;
-      const isOpen = openCards.has(title);
-      if (isOpen) openCards.delete(title); else openCards.add(title);
-      details.hidden = isOpen;
-      card.classList.toggle("is-open", !isOpen);
-      const toggle = card.querySelector("[data-toggle]");
-      if (toggle) {
-        toggle.textContent = isOpen ? "Details" : "Hide details";
-        toggle.setAttribute("aria-expanded", String(!isOpen));
-      }
-    }
-
     function findCert(title) { return certificateData.find(item => item.title === title); }
 
     function showToast(message) {
@@ -348,16 +327,12 @@
         return;
       }
 
-      const outcomes = getOutcomes();
       matches.forEach((cert, index) => {
         const done = completed.has(cert.title);
-        const outcome = outcomes[cert.title];
         const saved = isSaved(cert.title);
         const cred = credentialOf(cert);
-        const subjects = cert.subjects || [];
-        const isOpen = openCards.has(cert.title);
         const card = document.createElement("article");
-        card.className = "cert-card" + (index === 0 && role !== "all" ? " is-top" : "") + (isOpen ? " is-open" : "");
+        card.className = "cert-card" + (index === 0 && role !== "all" ? " is-top" : "");
         card.dataset.title = cert.title;
         card.innerHTML = `
           <div class="cert-head">
@@ -374,47 +349,52 @@
           <div class="cert-foot">
             <span class="tag-chip">${cert.role}</span>
             <div style="display:flex; gap:8px; align-items:center;">
-              <button class="text-link" type="button" data-toggle aria-expanded="${isOpen}">${isOpen ? "Hide" : "Details"}</button>
               <a class="icon-btn open-btn" href="${cert.url}" target="_blank" rel="noreferrer" data-open="${cert.title}" aria-label="Open course" title="Open course">&#8599;</a>
               <button class="save-toggle${saved ? " is-saved" : ""}" type="button" data-save="${cert.title}" aria-label="${saved ? "Remove from my space" : "Add to my space"}" title="${saved ? "Saved - click to remove" : "Add to my space"}">${saved ? "&#10003;" : "+"}</button>
             </div>
-          </div>
-          <div class="cert-details"${isOpen ? "" : " hidden"}>
-            ${cert.priceNote ? `<p class="mini">Cost: ${cert.priceNote}</p>` : ""}
-            <p class="cert-value">${cert.value}</p>
-            ${subjects.length ? `<p class="cert-covers">Covers ${subjects.slice(0, 4).join(", ")}</p>` : ""}
-            <p class="cert-proof"><strong>Proof to create:</strong> ${cert.proofTip}</p>
-            <div class="cert-actions">
-              <button class="text-link" type="button" data-cert="${cert.title}">Copy proof idea</button>
-              <button class="text-link" type="button" data-done="${cert.title}">${done ? "Mark not done" : "Mark completed"}</button>
-            </div>
-            ${done ? (outcome
-              ? `<p class="mini">Thanks - logged that it ${outcome === "yes" ? "helped you get shortlisted" : "has not helped yet"}.</p>`
-              : `<div class="cert-actions" style="margin-top: 2px; padding-top: 10px; border-top: 1px solid var(--line);">
-                  <span class="mini">Did this help you get shortlisted?</span>
-                  <button class="text-link" type="button" data-outcome="yes" data-outcome-cert="${cert.title}">Yes</button>
-                  <button class="text-link" type="button" data-outcome="not-yet" data-outcome-cert="${cert.title}">Not yet</button>
-                </div>`)
-              : ""}
-            ${done ? `<div class="li-post" id="liPost-${escapeHtml(cert.title).replace(/[^a-z0-9]/gi, "")}"><button class="text-link" type="button" data-linkedin="${cert.title}">Draft a LinkedIn post about this</button></div>` : ""}
           </div>
         `;
         grid.appendChild(card);
       });
     }
 
-    /* ---------------- Deck mode: one big card, swipe/click through the stack ---------------- */
-    let viewMode = "grid";
+    /* ---------------- Deck overlay: click any grid card to open it centered and
+       enlarged, with the rest of the current filtered list fanned behind it -
+       drag, scroll (wheel), or arrow keys to move through from there. ---------------- */
     let deckIndex = 0;
+    const deckOverlayEl = document.querySelector("#deckOverlay");
 
-    function renderDeck() {
-      const wrap = document.querySelector("#deckWrap");
+    function deckOpen() { return !deckOverlayEl.hidden; }
+
+    // sourceRect (a DOMRect from the clicked grid card) triggers a "zoom from
+    // that card to centre" entrance; omit it for a plain fade-in (e.g. reopens).
+    function openDeck(index, sourceRect) {
+      deckIndex = index;
+      deckOverlayEl.hidden = false;
+      document.body.style.overflow = "hidden";
+      renderDeckContent(sourceRect);
+      const cert = getMatches()[deckIndex];
+      analytics.track("deck_opened", { role: cert ? cert.role : null, cert_title: cert ? cert.title : null, meta: { source: "catalog" } });
+    }
+
+    function closeDeck() {
+      const card = document.querySelector("#deckCard");
+      if (card) {
+        card.style.transition = "transform 0.3s var(--ease-hover), opacity 0.3s var(--ease-hover)";
+        card.style.transform = "scale(0.92) translateY(10px)";
+        card.style.opacity = "0";
+      }
+      window.setTimeout(() => {
+        deckOverlayEl.hidden = true;
+        deckOverlayEl.innerHTML = "";
+        document.body.style.overflow = "";
+      }, card ? 220 : 0);
+    }
+
+    function renderDeckContent(sourceRect) {
       const matches = getMatches();
-      const doneCountAll = certificateData.filter(cert => getCompleted().has(cert.title)).length;
-      document.querySelector("#certCount").textContent = `${matches.length} of ${certificateData.length}${doneCountAll ? ` · ${doneCountAll} done` : ""}`;
-
       if (!matches.length) {
-        wrap.innerHTML = `<p class="empty">No matches. Try clearing a filter.</p>`;
+        deckOverlayEl.innerHTML = `<button class="deck-overlay-close" id="deckClose" aria-label="Close" type="button">&times;</button><p class="empty">No matches. Try clearing a filter.</p>`;
         return;
       }
       if (deckIndex >= matches.length) deckIndex = 0;
@@ -430,7 +410,8 @@
       const subjects = cert.subjects || [];
       const safeId = escapeHtml(cert.title).replace(/[^a-z0-9]/gi, "");
 
-      wrap.innerHTML = `
+      deckOverlayEl.innerHTML = `
+        <button class="deck-overlay-close" id="deckClose" aria-label="Close" type="button">&times;</button>
         <div class="deck-stack">
           ${matches.length > 2 ? `<div class="deck-ghost g2"></div>` : ""}
           ${matches.length > 1 ? `<div class="deck-ghost g1"></div>` : ""}
@@ -474,9 +455,29 @@
         </div>
       `;
 
-      document.querySelector("#deckPrev").addEventListener("click", () => stepDeck(-1));
-      document.querySelector("#deckNext").addEventListener("click", () => stepDeck(1));
       wireDeckSwipe();
+
+      // FLIP-lite: on first open, start the card at the clicked grid card's exact
+      // position/size, then release it to its natural centred/enlarged layout.
+      if (sourceRect) {
+        const cardEl = document.querySelector("#deckCard");
+        const destRect = cardEl.getBoundingClientRect();
+        const dx = (sourceRect.left + sourceRect.width / 2) - (destRect.left + destRect.width / 2);
+        const dy = (sourceRect.top + sourceRect.height / 2) - (destRect.top + destRect.height / 2);
+        const scaleX = Math.max(0.2, sourceRect.width / destRect.width);
+        const scaleY = Math.max(0.2, sourceRect.height / destRect.height);
+        cardEl.style.transition = "none";
+        cardEl.style.transform = `translate(${dx}px, ${dy}px) scale(${scaleX}, ${scaleY})`;
+        cardEl.style.opacity = "0.6";
+        void cardEl.offsetWidth; // force reflow so the transition below actually animates
+        const settle = () => {
+          cardEl.style.transition = "transform 0.5s var(--ease-spring), opacity 0.4s ease";
+          cardEl.style.transform = "";
+          cardEl.style.opacity = "1";
+        };
+        requestAnimationFrame(() => requestAnimationFrame(settle));
+        window.setTimeout(settle, 60); // safety net if rAF is throttled (e.g. backgrounded tab)
+      }
     }
 
     // Advances the deck with a card-toss exit, then swaps content and eases the
@@ -488,7 +489,7 @@
       if (card) card.classList.add(delta > 0 ? "is-leaving-left" : "is-leaving-right");
       window.setTimeout(() => {
         deckIndex = (deckIndex + delta + matches.length) % matches.length;
-        renderDeck();
+        renderDeckContent();
         const fresh = document.querySelector("#deckCard");
         if (fresh) {
           fresh.classList.add("is-entering");
@@ -523,31 +524,36 @@
       card.addEventListener("pointerleave", release);
     }
 
+    // One-time wiring: close (backdrop/X), prev/next, and every card action
+    // (save/done/copy/outcome/linkedin/open) inside the overlay, delegated so it
+    // survives every re-render without re-attaching listeners.
+    let deckWheelLock = false;
+    deckOverlayEl.addEventListener("click", event => {
+      if (event.target === deckOverlayEl) { closeDeck(); return; }
+      if (event.target.closest("#deckClose")) { closeDeck(); return; }
+      if (event.target.closest("#deckPrev")) { stepDeck(-1); return; }
+      if (event.target.closest("#deckNext")) { stepDeck(1); return; }
+      onCardAction(event);
+    });
+
+    deckOverlayEl.addEventListener("wheel", event => {
+      if (!deckOpen()) return;
+      event.preventDefault();
+      if (deckWheelLock) return;
+      const delta = Math.abs(event.deltaY) > Math.abs(event.deltaX) ? event.deltaY : event.deltaX;
+      if (Math.abs(delta) < 12) return;
+      deckWheelLock = true;
+      stepDeck(delta > 0 ? 1 : -1);
+      window.setTimeout(() => { deckWheelLock = false; }, 380);
+    }, { passive: false });
+
     document.addEventListener("keydown", event => {
-      if (viewMode !== "deck") return;
+      if (!deckOpen()) return;
       if (/input|textarea|select/i.test(event.target.tagName)) return;
+      if (event.key === "Escape") { closeDeck(); return; }
       if (event.key === "ArrowRight") stepDeck(1);
       if (event.key === "ArrowLeft") stepDeck(-1);
     });
-
-    function refreshView() {
-      if (viewMode === "deck") renderDeck(); else renderCertificates();
-    }
-
-    function setViewMode(mode) {
-      if (mode === viewMode) return;
-      viewMode = mode;
-      document.querySelector("#viewGridBtn").classList.toggle("is-active", mode === "grid");
-      document.querySelector("#viewDeckBtn").classList.toggle("is-active", mode === "deck");
-      document.querySelector("#certificateGrid").hidden = mode !== "grid";
-      document.querySelector("#deckWrap").hidden = mode !== "deck";
-      deckIndex = 0;
-      refreshView();
-      analytics.track("view_mode_changed", { meta: { mode, source: "catalog" } });
-    }
-
-    document.querySelector("#viewGridBtn").addEventListener("click", () => setViewMode("grid"));
-    document.querySelector("#viewDeckBtn").addEventListener("click", () => setViewMode("deck"));
 
     async function loadCatalog() {
       const grid = document.querySelector("#certificateGrid");
@@ -559,7 +565,7 @@
         const rows = await res.json();
         certificateData = (rows || []).map(normalizeCert);
         if (!certificateData.length) throw new Error("empty");
-        refreshView();
+        renderCertificates();
         return;
       } catch (error) {
         /* fall through to the static fallback below */
@@ -572,14 +578,21 @@
         const rows = await res.json();
         certificateData = (rows || []).map(cert => ({ ...cert, hours: cert.hours == null ? null : Number(cert.hours) }));
         if (!certificateData.length) throw new Error("empty");
-        refreshView();
+        renderCertificates();
       } catch (error) {
         document.querySelector("#certCount").textContent = "Unavailable";
         grid.innerHTML = `<p class="empty">Couldn't load the catalog right now. Try the <a href="/">certificate finder on the home page</a>.</p>`;
       }
     }
 
-    [certSearch, certRole, certCost, certTime].forEach(control => control.addEventListener("input", () => { deckIndex = 0; refreshView(); }));
+    [certSearch, certRole, certCost, certTime].forEach(control => control.addEventListener("input", () => { deckIndex = 0; renderCertificates(); }));
+
+    // Keeps whichever view(s) are relevant in sync after an action (save/done/
+    // outcome) - the grid always, plus the open deck card if the overlay is up.
+    function refreshAfterAction() {
+      renderCertificates();
+      if (deckOpen()) renderDeckContent();
+    }
 
     function onCardAction(event) {
       const outcomeBtn = event.target.closest("[data-outcome]");
@@ -590,7 +603,7 @@
         setOutcome(title, outcome);
         analytics.track("outcome_reported", { role: cert ? cert.role : null, cert_title: title, cert_provider: cert ? cert.provider : null, meta: { outcome, source: "catalog" } });
         showToast(outcome === "yes" ? "Great - thanks for sharing!" : "Thanks - keep building proof.");
-        refreshView();
+        refreshAfterAction();
         return;
       }
       const openBtn = event.target.closest("[data-open]");
@@ -610,7 +623,7 @@
           analytics.track("cert_completed", { role: cert ? cert.role : null, cert_title: title, cert_provider: cert ? cert.provider : null, meta: { source: "catalog" } });
         }
         setCompleted(completed);
-        refreshView();
+        refreshAfterAction();
         return;
       }
       const copyBtn = event.target.closest("[data-cert]");
@@ -630,7 +643,7 @@
         if (!cert) return;
         const nowSaved = toggleSaved(cert);
         showToast(nowSaved ? "Added to your space." : "Removed from your space.");
-        refreshView();
+        refreshAfterAction();
         return;
       }
       const liBtn = event.target.closest("[data-linkedin]");
@@ -639,18 +652,21 @@
         if (cert) draftLinkedInPost(cert, liBtn.closest(".li-post"));
         return;
       }
-      const toggleBtn = event.target.closest("[data-toggle]");
-      if (toggleBtn) { toggleCard(toggleBtn.closest(".cert-card")); return; }
-      const card = event.target.closest(".cert-card");
-      if (card && !event.target.closest("a, button")) toggleCard(card);
     }
 
-    document.querySelector("#certificateGrid").addEventListener("click", onCardAction);
-    document.querySelector("#deckWrap").addEventListener("click", onCardAction);
+    document.querySelector("#certificateGrid").addEventListener("click", event => {
+      onCardAction(event);
+      const card = event.target.closest(".cert-card");
+      if (card && !event.target.closest("a, button")) {
+        const matches = getMatches();
+        const idx = matches.findIndex(c => c.title === card.dataset.title);
+        if (idx >= 0) openDeck(idx, card.getBoundingClientRect());
+      }
+    });
 
     updateSpaceBadge();
     loadCatalog();
   </script>
-  <script src="/ui.js" defer></script>
+  <script src="/ui.js?v=2" defer></script>
 </body>
 </html>
