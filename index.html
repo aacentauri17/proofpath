@@ -21,7 +21,7 @@
   <meta name="twitter:image" content="https://proofpath-delta.vercel.app/og-image.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
@@ -797,9 +797,9 @@
     // Compact cost indicator for the card's meta line; the full priceNote lives in
     // the details panel to keep collapsed cards scannable.
     function costBadge(cert) {
-      if (cert.cost === "free") return "&#127379; Free";               // 🆓
-      if (cert.cost === "cheap") return "&#128176; Low cost";          // 💰
-      return "&#128176; Paid";
+      if (cert.cost === "free") return "Free";
+      if (cert.cost === "cheap") return "Low cost";
+      return "Paid";
     }
 
     // Provider initials shown on the card's square visual tile.
@@ -924,7 +924,7 @@
                 <span class="cred ${cred.has ? "cred-yes" : "cred-no"}">${cred.label}</span>
               </div>
               <h3>${cert.title}</h3>
-              <p class="cert-line">${costBadge(cert)} &middot; &#9201;&#65039; ${cert.hours} hrs &middot; ${cert.level || "All levels"}${done ? ` &middot; <span class="done">&#10003; Completed</span>` : ""}</p>
+              <p class="cert-line">${costBadge(cert)} &middot; ${cert.hours} hrs &middot; ${cert.level || "All levels"}${done ? ` &middot; <span class="done">&#10003; Completed</span>` : ""}</p>
             </div>
           </div>
           <div class="cert-foot">

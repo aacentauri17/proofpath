@@ -17,11 +17,13 @@
   --line: rgba(255, 255, 255, 0.08);
   --line-strong: rgba(255, 255, 255, 0.16);
 
-  --card: #ffffff;          /* almanac card face */
-  --card-ink: #101319;
-  --card-muted: #6f7684;
-  --card-line: #ecebe7;
-  --card-fill: #f1f0ee;
+  --card: linear-gradient(165deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.03));
+  --card-border: rgba(255, 255, 255, 0.14);
+  --card-ink: #eef1f7;
+  --card-muted: #9aa3b8;
+  --card-line: rgba(255, 255, 255, 0.12);
+  --card-fill: rgba(255, 255, 255, 0.06);
+  --card-blur: blur(22px) saturate(150%);
 
   --accent: #cf8047;        /* warm amber (Lumora accent family) */
   --accent-deep: #97501f;
@@ -56,7 +58,7 @@ body {
     radial-gradient(60rem 30rem at 70% -10%, rgba(207, 128, 71, 0.09), transparent 60%),
     radial-gradient(50rem 26rem at 0% 0%, rgba(59, 89, 152, 0.10), transparent 55%),
     var(--bg);
-  font-family: "Onest", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: "Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   line-height: 1.5;
   overflow-x: hidden;
 }
@@ -497,6 +499,9 @@ select option { background: var(--bg-2); color: var(--ink); }
   inset: 0;
   border-radius: var(--radius-card);
   background: var(--card);
+  border: 1px solid var(--card-border);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
   box-shadow: 0 12px 30px rgba(2, 4, 10, 0.35);
   transform-origin: bottom center;
   pointer-events: none;
@@ -511,12 +516,15 @@ select option { background: var(--bg-2); color: var(--ink); }
   height: 100%;
   border-radius: var(--radius-card);
   background: var(--card);
+  border: 1px solid var(--card-border);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
   color: var(--card-ink);
   padding: 26px;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  box-shadow: 0 24px 60px rgba(2, 4, 10, 0.5);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.09) inset, 0 24px 60px rgba(2, 4, 10, 0.55);
   cursor: grab;
   transition: transform 0.45s var(--ease-spring), opacity 0.45s var(--ease-spring), box-shadow 0.3s ease;
   user-select: none;
@@ -532,19 +540,29 @@ select option { background: var(--bg-2); color: var(--ink); }
   width: 5.5rem;
   aspect-ratio: 1;
   border-radius: 1rem;
-  background: #f3f4f6;
+  background: rgba(255, 255, 255, 0.07);
   border: 1px solid var(--card-line);
   display: grid;
   place-items: center;
   position: relative;
   overflow: hidden;
-  color: #6b7280;
+  color: var(--card-muted);
   font-weight: 700;
   font-size: 1.3rem;
   flex: 0 0 auto;
 }
 
-.deck-tile img { position: absolute; inset: 0; margin: auto; width: 60%; height: 60%; object-fit: contain; }
+.deck-tile img {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 58%;
+  height: 58%;
+  object-fit: contain;
+  background: #fff;
+  border-radius: 0.5rem;
+  padding: 5px;
+}
 
 .deck-head { display: flex; gap: 14px; align-items: center; }
 
@@ -562,7 +580,7 @@ select option { background: var(--bg-2); color: var(--ink); }
 
 .deck-line { color: var(--card-muted); font-size: 0.88rem; font-weight: 500; }
 
-.deck-value { color: #3d4351; font-size: 0.98rem; line-height: 1.55; flex: 1; }
+.deck-value { color: var(--card-ink); font-size: 0.98rem; line-height: 1.55; flex: 1; }
 
 .deck-covers { color: var(--card-muted); font-size: 0.85rem; font-style: italic; }
 
@@ -602,21 +620,25 @@ select option { background: var(--bg-2); color: var(--ink); }
 }
 
 .cert-card {
-  padding: 12px;
-  border: 1px solid transparent;
+  padding: 14px;
+  border: 1px solid var(--card-border);
   border-radius: var(--radius-card-sm);
   background: var(--card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
   color: var(--card-ink);
   display: grid;
   gap: 10px;
   cursor: pointer;
-  transition: transform 0.45s var(--ease-spring), box-shadow 0.45s var(--ease-spring);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset, 0 10px 26px rgba(2, 4, 10, 0.35);
+  transition: transform 0.45s var(--ease-spring), box-shadow 0.45s var(--ease-spring), border-color 0.45s var(--ease-spring);
   will-change: transform;
 }
 
 .cert-card:hover {
   transform: translateY(-6px) scale(1.012);
-  box-shadow: var(--shadow-card);
+  border-color: rgba(255, 255, 255, 0.24);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.1) inset, var(--shadow-card);
 }
 
 .cert-card:active { transform: translateY(-2px) scale(0.995); }
@@ -643,12 +665,12 @@ select option { background: var(--bg-2); color: var(--ink); }
   place-items: center;
   position: relative;
   overflow: hidden;
-  color: #6b7280;
+  color: var(--card-muted);
   font-weight: 700;
   font-size: 1.2rem;
   letter-spacing: 0.02em;
   user-select: none;
-  background: #f3f4f6;
+  background: rgba(255, 255, 255, 0.07);
   border: 1px solid var(--card-line);
 }
 
@@ -656,9 +678,12 @@ select option { background: var(--bg-2); color: var(--ink); }
   position: absolute;
   inset: 0;
   margin: auto;
-  width: 60%;
-  height: 60%;
+  width: 58%;
+  height: 58%;
   object-fit: contain;
+  background: #fff;
+  border-radius: 0.5rem;
+  padding: 5px;
   z-index: 1;
 }
 
@@ -684,7 +709,7 @@ select option { background: var(--bg-2); color: var(--ink); }
   white-space: nowrap;
 }
 
-.cert-provider .top-flag { color: var(--accent-deep); }
+.cert-provider .top-flag { color: var(--accent); }
 
 .cred {
   flex: 0 0 auto;
@@ -698,7 +723,7 @@ select option { background: var(--bg-2); color: var(--ink); }
   white-space: nowrap;
 }
 
-.cred-yes { color: #1a7f4e; }
+.cred-yes { color: var(--good); }
 .cred-no { color: var(--card-muted); }
 
 .cert-line {
@@ -708,7 +733,7 @@ select option { background: var(--bg-2); color: var(--ink); }
   font-weight: 500;
 }
 
-.cert-line .done { color: #1a7f4e; font-weight: 700; }
+.cert-line .done { color: var(--good); font-weight: 700; }
 
 /* Footer: tag chip left, circular actions right */
 .cert-foot {
@@ -748,7 +773,8 @@ select option { background: var(--bg-2); color: var(--ink); }
 
 .icon-btn:hover { transform: scale(1.1); }
 
-.icon-btn.open-btn { background: var(--card-fill); color: var(--card-ink); }
+.icon-btn.open-btn { background: rgba(255, 255, 255, 0.10); color: var(--card-ink); }
+.icon-btn.open-btn:hover { background: rgba(255, 255, 255, 0.18); }
 
 .save-toggle {
   width: 2.25rem;
@@ -784,7 +810,7 @@ select option { background: var(--bg-2); color: var(--ink); }
   padding-top: 10px;
 }
 
-.cert-value { margin: 0; color: #3d4351; font-size: 0.92rem; line-height: 1.5; }
+.cert-value { margin: 0; color: var(--card-ink); font-size: 0.92rem; line-height: 1.5; }
 
 .cert-covers { margin: 0; color: var(--card-muted); font-size: 0.82rem; font-style: italic; line-height: 1.5; }
 
