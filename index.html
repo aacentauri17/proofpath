@@ -808,6 +808,23 @@
         .map(w => w[0].toUpperCase()).join("");
     }
 
+    // Real provider logo via the course's own domain favicon; the initials render
+    // underneath so a failed/blank logo still leaves a clean fallback.
+    function domainLogo(url) {
+      try {
+        const host = new URL(url).hostname.replace(/^www\./, "");
+        return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=128`;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function tileHtml(cert, cls) {
+      const logo = domainLogo(cert.url);
+      const img = logo ? `<img src="${logo}" alt="" loading="lazy" onerror="this.remove()">` : "";
+      return `<div class="${cls} tile-fallback" data-role="${cert.role}">${img}${tileMark(cert.provider)}</div>`;
+    }
+
     // Rank by relevance to the student's target role, then recruiter recognition and
     // LinkedIn value, then lowest effort (quickest win).
     function certRank(cert, targetRole) {
@@ -900,7 +917,7 @@
         card.dataset.title = cert.title;
         card.innerHTML = `
           <div class="cert-head">
-            <div class="cert-tile" data-role="${cert.role}">${tileMark(cert.provider)}</div>
+            ${tileHtml(cert, "cert-tile")}
             <div class="cert-body">
               <div class="cert-top">
                 <span class="cert-provider">${index === 0 ? `<span class="top-flag">Top pick</span> &middot; ` : ""}${cert.provider}</span>
@@ -1145,7 +1162,7 @@
         <div class="cert-grid">${recs.map((r, i) => `
           <article class="cert-card airec">
             <div class="cert-head">
-              <div class="cert-tile" data-role="${escapeHtml(profile.role)}">${tileMark(r.provider)}</div>
+              ${tileHtml(r, "cert-tile")}
               <div class="cert-body">
                 <div class="cert-top">
                   <span class="cert-provider">${escapeHtml(r.provider || "")}</span>

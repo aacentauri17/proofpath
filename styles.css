@@ -443,11 +443,162 @@ select option { background: var(--bg-2); color: var(--ink); }
   margin-bottom: 18px;
 }
 
+/* ---------------- View toggle (Grid / Deck) ---------------- */
+.view-toggle {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.view-toggle button {
+  border: 0;
+  border-radius: var(--radius-pill);
+  padding: 7px 16px;
+  color: var(--muted);
+  background: transparent;
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: background 0.3s var(--ease-hover), color 0.3s var(--ease-hover);
+}
+
+.view-toggle button.is-active {
+  color: #fff;
+  background: linear-gradient(to bottom right, var(--accent), var(--accent-deep));
+}
+
 /* ---------------- Almanac certificate cards ---------------- */
 .cert-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 16px;
+}
+
+/* ---------------- Deck mode: big interactive card stack ---------------- */
+.deck-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  padding: 12px 0 8px;
+}
+
+.deck-stack {
+  position: relative;
+  width: min(30rem, 92vw);
+  min-height: 30rem;
+  touch-action: pan-y;
+}
+
+.deck-ghost {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-card);
+  background: var(--card);
+  box-shadow: 0 12px 30px rgba(2, 4, 10, 0.35);
+  transform-origin: bottom center;
+  pointer-events: none;
+}
+
+.deck-ghost.g1 { transform: translateY(-14px) scale(0.96) rotate(-2deg); opacity: 0.75; z-index: 1; }
+.deck-ghost.g2 { transform: translateY(-26px) scale(0.92) rotate(2.4deg); opacity: 0.45; z-index: 0; }
+
+.deck-card {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  border-radius: var(--radius-card);
+  background: var(--card);
+  color: var(--card-ink);
+  padding: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 24px 60px rgba(2, 4, 10, 0.5);
+  cursor: grab;
+  transition: transform 0.45s var(--ease-spring), opacity 0.45s var(--ease-spring), box-shadow 0.3s ease;
+  user-select: none;
+}
+
+.deck-card:active { cursor: grabbing; }
+
+.deck-card.is-leaving-left { transform: translateX(-140%) rotate(-10deg); opacity: 0; }
+.deck-card.is-leaving-right { transform: translateX(140%) rotate(10deg); opacity: 0; }
+.deck-card.is-entering { transform: scale(0.94); opacity: 0; }
+
+.deck-tile {
+  width: 5.5rem;
+  aspect-ratio: 1;
+  border-radius: 1rem;
+  background: #f3f4f6;
+  border: 1px solid var(--card-line);
+  display: grid;
+  place-items: center;
+  position: relative;
+  overflow: hidden;
+  color: #6b7280;
+  font-weight: 700;
+  font-size: 1.3rem;
+  flex: 0 0 auto;
+}
+
+.deck-tile img { position: absolute; inset: 0; margin: auto; width: 60%; height: 60%; object-fit: contain; }
+
+.deck-head { display: flex; gap: 14px; align-items: center; }
+
+.deck-titles { min-width: 0; display: grid; gap: 4px; }
+
+.deck-provider {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--card-muted);
+}
+
+.deck-card h3 { font-size: 1.4rem; line-height: 1.2; }
+
+.deck-line { color: var(--card-muted); font-size: 0.88rem; font-weight: 500; }
+
+.deck-value { color: #3d4351; font-size: 0.98rem; line-height: 1.55; flex: 1; }
+
+.deck-covers { color: var(--card-muted); font-size: 0.85rem; font-style: italic; }
+
+.deck-proof { background: var(--card-fill); border-radius: var(--radius-control); padding: 12px 14px; font-size: 0.9rem; color: var(--card-ink); }
+
+.deck-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 4px;
+  border-top: 1px solid var(--card-line);
+}
+
+.deck-controls { display: flex; align-items: center; gap: 18px; }
+
+.deck-nav-btn {
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line-strong);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--ink);
+  font-size: 1.2rem;
+  display: grid;
+  place-items: center;
+  transition: transform 0.3s var(--ease-hover), background 0.3s var(--ease-hover);
+}
+
+.deck-nav-btn:hover { transform: scale(1.08); background: rgba(255, 255, 255, 0.09); }
+.deck-nav-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.deck-counter { color: var(--muted); font-size: 0.85rem; font-weight: 600; min-width: 5rem; text-align: center; }
+
+@media (max-width: 560px) {
+  .deck-stack { min-height: 34rem; }
 }
 
 .cert-card {
@@ -482,26 +633,36 @@ select option { background: var(--bg-2); color: var(--ink); }
   align-items: start;
 }
 
+/* Minimalist logo tile: plain light square, just the provider's real mark (or
+   neutral initials if none loads). No colour-coding, no decoration. */
 .cert-tile {
   aspect-ratio: 1;
   width: 5.5rem;
   border-radius: 0.875rem;
   display: grid;
   place-items: center;
-  color: rgba(255, 255, 255, 0.95);
+  position: relative;
+  overflow: hidden;
+  color: #6b7280;
   font-weight: 700;
-  font-size: 1.35rem;
+  font-size: 1.2rem;
   letter-spacing: 0.02em;
   user-select: none;
-  background: linear-gradient(135deg, #64748b, #1e293b);
+  background: #f3f4f6;
+  border: 1px solid var(--card-line);
 }
 
-.cert-tile[data-role="marketing"] { background: linear-gradient(135deg, #fb923c, #b3400f); }
-.cert-tile[data-role="data"]      { background: linear-gradient(135deg, #818cf8, #312e81); }
-.cert-tile[data-role="product"]   { background: linear-gradient(135deg, #34d399, #065f46); }
-.cert-tile[data-role="finance"]   { background: linear-gradient(135deg, #facc15, #92400e); }
-.cert-tile[data-role="design"]    { background: linear-gradient(135deg, #c084fc, #6b21a8); }
-.cert-tile[data-role="software"]  { background: linear-gradient(135deg, #38bdf8, #0c4a6e); }
+.cert-tile img {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 60%;
+  height: 60%;
+  object-fit: contain;
+  z-index: 1;
+}
+
+.tile-fallback { position: relative; }
 
 .cert-body { display: grid; gap: 5px; align-content: start; min-width: 0; }
 

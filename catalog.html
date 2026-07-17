@@ -67,7 +67,12 @@
             <option value="weekend">Weekend</option>
           </select>
         </div>
+        <div class="view-toggle" role="group" aria-label="View mode" style="margin-bottom: 16px;">
+          <button type="button" id="viewGridBtn" class="is-active">Grid</button>
+          <button type="button" id="viewDeckBtn">Deck</button>
+        </div>
         <div class="cert-grid" id="certificateGrid"></div>
+        <div class="deck-wrap" id="deckWrap" hidden></div>
       </section>
     </main>
   </div>
@@ -254,6 +259,23 @@
         .map(w => w[0].toUpperCase()).join("");
     }
 
+    // Real provider logo via the course's own domain favicon; initials render
+    // underneath so a failed/blank logo still leaves a clean fallback.
+    function domainLogo(url) {
+      try {
+        const host = new URL(url).hostname.replace(/^www\./, "");
+        return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=128`;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function tileHtml(cert, cls) {
+      const logo = domainLogo(cert.url);
+      const img = logo ? `<img src="${logo}" alt="" loading="lazy" onerror="this.remove()">` : "";
+      return `<div class="${cls} tile-fallback" data-role="${cert.role}">${img}${tileMark(cert.provider)}</div>`;
+    }
+
     const NO_CERTIFICATE_TITLES = new Set([
       "ProductTank Talks & Resources", "Material Design Foundations", "Full Stack JavaScript Path",
       "Tableau Public Training", "Finance & Capital Markets", "Figma for Beginners",
@@ -294,21 +316,26 @@
       showToast.timer = window.setTimeout(() => toast.classList.remove("show"), 2200);
     }
 
-    function renderCertificates() {
+    // Shared by grid and deck views so filtering/ranking never drifts between them.
+    function getMatches() {
       const query = certSearch.value.trim().toLowerCase();
       const role = certRole.value;
       const cost = certCost.value;
       const time = certTime.value;
       const targetRole = role; // on the catalog page, the chosen role filter drives ranking
-      const completed = getCompleted();
-
-      const matches = certificateData.filter(cert => {
+      return certificateData.filter(cert => {
         const text = `${cert.provider} ${cert.title} ${cert.value} ${cert.proofTip} ${(cert.subjects || []).join(" ")} ${cert.level || ""}`.toLowerCase();
         const roleOk = role === "all" || cert.role === role;
         const costOk = cost === "all" || (cost === "free" && cert.cost === "free") || (cost === "cheap" && ["free", "cheap"].includes(cert.cost));
         const timeOk = time === "all" || (time === "short" && cert.hours <= 5) || (time === "weekend" && cert.hours <= 10);
         return roleOk && costOk && timeOk && (!query || text.includes(query));
       }).sort((a, b) => certRank(b, targetRole) - certRank(a, targetRole));
+    }
+
+    function renderCertificates() {
+      const role = certRole.value;
+      const matches = getMatches();
+      const completed = getCompleted();
 
       const grid = document.querySelector("#certificateGrid");
       grid.innerHTML = "";
@@ -334,7 +361,7 @@
         card.dataset.title = cert.title;
         card.innerHTML = `
           <div class="cert-head">
-            <div class="cert-tile" data-role="${cert.role}">${tileMark(cert.provider)}</div>
+            ${tileHtml(cert, "cert-tile")}
             <div class="cert-body">
               <div class="cert-top">
                 <span class="cert-provider">${index === 0 && role !== "all" ? `<span class="top-flag">Top pick</span> &middot; ` : ""}${cert.provider}</span>
@@ -376,6 +403,152 @@
       });
     }
 
+    /* ---------------- Deck mode: one big card, swipe/click through the stack ---------------- */
+    let viewMode = "grid";
+    let deckIndex = 0;
+
+    function renderDeck() {
+      const wrap = document.querySelector("#deckWrap");
+      const matches = getMatches();
+      const doneCountAll = certificateData.filter(cert => getCompleted().has(cert.title)).length;
+      document.querySelector("#certCount").textContent = `${matches.length} of ${certificateData.length}${doneCountAll ? ` · ${doneCountAll} done` : ""}`;
+
+      if (!matches.length) {
+        wrap.innerHTML = `<p class="empty">No matches. Try clearing a filter.</p>`;
+        return;
+      }
+      if (deckIndex >= matches.length) deckIndex = 0;
+      if (deckIndex < 0) deckIndex = matches.length - 1;
+
+      const completed = getCompleted();
+      const outcomes = getOutcomes();
+      const cert = matches[deckIndex];
+      const done = completed.has(cert.title);
+      const outcome = outcomes[cert.title];
+      const saved = isSaved(cert.title);
+      const cred = credentialOf(cert);
+      const subjects = cert.subjects || [];
+      const safeId = escapeHtml(cert.title).replace(/[^a-z0-9]/gi, "");
+
+      wrap.innerHTML = `
+        <div class="deck-stack">
+          ${matches.length > 2 ? `<div class="deck-ghost g2"></div>` : ""}
+          ${matches.length > 1 ? `<div class="deck-ghost g1"></div>` : ""}
+          <article class="deck-card" id="deckCard" data-title="${cert.title}">
+            <div class="deck-head">
+              ${tileHtml(cert, "deck-tile")}
+              <div class="deck-titles">
+                <span class="deck-provider">${cert.provider || ""}</span>
+                <h3>${cert.title}</h3>
+                <span class="cred ${cred.has ? "cred-yes" : "cred-no"}">${cred.label}</span>
+              </div>
+            </div>
+            <p class="deck-line">${costBadge(cert)} &middot; &#9201;&#65039; ${cert.hours} hrs &middot; ${cert.level || "All levels"}${done ? ` &middot; <span class="done">&#10003; Completed</span>` : ""}</p>
+            <p class="deck-value">${cert.value || ""}</p>
+            ${subjects.length ? `<p class="deck-covers">Covers ${subjects.slice(0, 5).join(", ")}</p>` : ""}
+            <p class="deck-proof"><strong>Proof to create:</strong> ${cert.proofTip || ""}</p>
+            ${done ? (outcome
+              ? `<p class="mini">Thanks - logged that it ${outcome === "yes" ? "helped you get shortlisted" : "has not helped yet"}.</p>`
+              : `<div class="cert-actions">
+                  <span class="mini">Did this help you get shortlisted?</span>
+                  <button class="text-link" type="button" data-outcome="yes" data-outcome-cert="${cert.title}">Yes</button>
+                  <button class="text-link" type="button" data-outcome="not-yet" data-outcome-cert="${cert.title}">Not yet</button>
+                </div>`)
+              : ""}
+            ${done ? `<div class="li-post" id="liPost-${safeId}"><button class="text-link" type="button" data-linkedin="${cert.title}">Draft a LinkedIn post about this</button></div>` : ""}
+            <div class="deck-foot">
+              <span class="tag-chip">${cert.role}</span>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <button class="text-link" type="button" data-cert="${cert.title}">Copy proof idea</button>
+                <button class="text-link" type="button" data-done="${cert.title}">${done ? "Mark not done" : "Mark completed"}</button>
+                <a class="icon-btn open-btn" href="${cert.url}" target="_blank" rel="noreferrer" data-open="${cert.title}" aria-label="Open course" title="Open course">&#8599;</a>
+                <button class="save-toggle${saved ? " is-saved" : ""}" type="button" data-save="${cert.title}" aria-label="${saved ? "Remove from my space" : "Add to my space"}" title="${saved ? "Saved - click to remove" : "Add to my space"}">${saved ? "&#10003;" : "+"}</button>
+              </div>
+            </div>
+          </article>
+        </div>
+        <div class="deck-controls">
+          <button class="deck-nav-btn" type="button" id="deckPrev" aria-label="Previous card">&#8592;</button>
+          <span class="deck-counter">${deckIndex + 1} of ${matches.length}</span>
+          <button class="deck-nav-btn" type="button" id="deckNext" aria-label="Next card">&#8594;</button>
+        </div>
+      `;
+
+      document.querySelector("#deckPrev").addEventListener("click", () => stepDeck(-1));
+      document.querySelector("#deckNext").addEventListener("click", () => stepDeck(1));
+      wireDeckSwipe();
+    }
+
+    // Advances the deck with a card-toss exit, then swaps content and eases the
+    // next card in - the "flip through a physical stack" feel.
+    function stepDeck(delta) {
+      const matches = getMatches();
+      if (matches.length < 2) return;
+      const card = document.querySelector("#deckCard");
+      if (card) card.classList.add(delta > 0 ? "is-leaving-left" : "is-leaving-right");
+      window.setTimeout(() => {
+        deckIndex = (deckIndex + delta + matches.length) % matches.length;
+        renderDeck();
+        const fresh = document.querySelector("#deckCard");
+        if (fresh) {
+          fresh.classList.add("is-entering");
+          requestAnimationFrame(() => requestAnimationFrame(() => fresh.classList.remove("is-entering")));
+        }
+      }, card ? 220 : 0);
+    }
+
+    function wireDeckSwipe() {
+      const card = document.querySelector("#deckCard");
+      if (!card) return;
+      let dragging = false, startX = 0, dx = 0;
+      const threshold = 80;
+      card.addEventListener("pointerdown", event => {
+        dragging = true; startX = event.clientX; dx = 0;
+        card.style.transition = "none";
+      });
+      card.addEventListener("pointermove", event => {
+        if (!dragging) return;
+        dx = event.clientX - startX;
+        card.style.transform = `translateX(${dx}px) rotate(${dx / 24}deg)`;
+      });
+      function release() {
+        if (!dragging) return;
+        dragging = false;
+        card.style.transition = "";
+        card.style.transform = "";
+        if (Math.abs(dx) > threshold) stepDeck(dx < 0 ? 1 : -1);
+        dx = 0;
+      }
+      card.addEventListener("pointerup", release);
+      card.addEventListener("pointerleave", release);
+    }
+
+    document.addEventListener("keydown", event => {
+      if (viewMode !== "deck") return;
+      if (/input|textarea|select/i.test(event.target.tagName)) return;
+      if (event.key === "ArrowRight") stepDeck(1);
+      if (event.key === "ArrowLeft") stepDeck(-1);
+    });
+
+    function refreshView() {
+      if (viewMode === "deck") renderDeck(); else renderCertificates();
+    }
+
+    function setViewMode(mode) {
+      if (mode === viewMode) return;
+      viewMode = mode;
+      document.querySelector("#viewGridBtn").classList.toggle("is-active", mode === "grid");
+      document.querySelector("#viewDeckBtn").classList.toggle("is-active", mode === "deck");
+      document.querySelector("#certificateGrid").hidden = mode !== "grid";
+      document.querySelector("#deckWrap").hidden = mode !== "deck";
+      deckIndex = 0;
+      refreshView();
+      analytics.track("view_mode_changed", { meta: { mode, source: "catalog" } });
+    }
+
+    document.querySelector("#viewGridBtn").addEventListener("click", () => setViewMode("grid"));
+    document.querySelector("#viewDeckBtn").addEventListener("click", () => setViewMode("deck"));
+
     async function loadCatalog() {
       const grid = document.querySelector("#certificateGrid");
       try {
@@ -386,7 +559,7 @@
         const rows = await res.json();
         certificateData = (rows || []).map(normalizeCert);
         if (!certificateData.length) throw new Error("empty");
-        renderCertificates();
+        refreshView();
         return;
       } catch (error) {
         /* fall through to the static fallback below */
@@ -399,16 +572,16 @@
         const rows = await res.json();
         certificateData = (rows || []).map(cert => ({ ...cert, hours: cert.hours == null ? null : Number(cert.hours) }));
         if (!certificateData.length) throw new Error("empty");
-        renderCertificates();
+        refreshView();
       } catch (error) {
         document.querySelector("#certCount").textContent = "Unavailable";
         grid.innerHTML = `<p class="empty">Couldn't load the catalog right now. Try the <a href="/">certificate finder on the home page</a>.</p>`;
       }
     }
 
-    [certSearch, certRole, certCost, certTime].forEach(control => control.addEventListener("input", renderCertificates));
+    [certSearch, certRole, certCost, certTime].forEach(control => control.addEventListener("input", () => { deckIndex = 0; refreshView(); }));
 
-    document.querySelector("#certificateGrid").addEventListener("click", event => {
+    function onCardAction(event) {
       const outcomeBtn = event.target.closest("[data-outcome]");
       if (outcomeBtn) {
         const title = outcomeBtn.dataset.outcomeCert;
@@ -417,7 +590,7 @@
         setOutcome(title, outcome);
         analytics.track("outcome_reported", { role: cert ? cert.role : null, cert_title: title, cert_provider: cert ? cert.provider : null, meta: { outcome, source: "catalog" } });
         showToast(outcome === "yes" ? "Great - thanks for sharing!" : "Thanks - keep building proof.");
-        renderCertificates();
+        refreshView();
         return;
       }
       const openBtn = event.target.closest("[data-open]");
@@ -437,7 +610,7 @@
           analytics.track("cert_completed", { role: cert ? cert.role : null, cert_title: title, cert_provider: cert ? cert.provider : null, meta: { source: "catalog" } });
         }
         setCompleted(completed);
-        renderCertificates();
+        refreshView();
         return;
       }
       const copyBtn = event.target.closest("[data-cert]");
@@ -457,7 +630,7 @@
         if (!cert) return;
         const nowSaved = toggleSaved(cert);
         showToast(nowSaved ? "Added to your space." : "Removed from your space.");
-        renderCertificates();
+        refreshView();
         return;
       }
       const liBtn = event.target.closest("[data-linkedin]");
@@ -470,7 +643,10 @@
       if (toggleBtn) { toggleCard(toggleBtn.closest(".cert-card")); return; }
       const card = event.target.closest(".cert-card");
       if (card && !event.target.closest("a, button")) toggleCard(card);
-    });
+    }
+
+    document.querySelector("#certificateGrid").addEventListener("click", onCardAction);
+    document.querySelector("#deckWrap").addEventListener("click", onCardAction);
 
     updateSpaceBadge();
     loadCatalog();
