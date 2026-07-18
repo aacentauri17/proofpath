@@ -245,6 +245,26 @@ h1 {
   letter-spacing: -0.02em;
 }
 
+/* Shimmer heading: a slow light sweep across the text, ported from a
+   framer-motion gradient-shift into a pure CSS background-position animation. */
+.shimmer-text {
+  background: linear-gradient(90deg, var(--ink) 0%, var(--muted) 50%, var(--ink) 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer-sweep 3.2s linear infinite;
+}
+
+@keyframes shimmer-sweep {
+  from { background-position: 200% center; }
+  to { background-position: -200% center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shimmer-text { animation: none; background-position: 0 center; }
+}
+
 h2 {
   margin-bottom: 8px;
   font-size: clamp(1.35rem, 2.2vw, 1.9rem);
@@ -462,6 +482,149 @@ select option { background: var(--bg-2); color: var(--ink); }
   gap: 10px;
   margin-bottom: 18px;
 }
+
+/* ---------------- Discovery rows: horizontal-scroll "Popular in X" ---------------- */
+.discovery-row { padding: 8px 0 22px; }
+
+.discovery-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.discovery-head h3 { margin: 0; font-size: 1.1rem; }
+
+.discovery-nav { display: flex; gap: 6px; }
+
+.discovery-nav-btn {
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+  font-size: 0.95rem;
+  transition: transform 0.3s var(--ease-hover), background 0.3s var(--ease-hover);
+}
+
+.discovery-nav-btn:hover { transform: scale(1.08); background: rgba(255, 255, 255, 0.09); }
+
+.discovery-track {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+
+.discovery-track::-webkit-scrollbar { display: none; }
+
+.discovery-card {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  width: 15.5rem;
+  border-radius: var(--radius-card-sm);
+  border: 1px solid var(--card-border);
+  background: var(--card);
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.4s var(--ease-spring), box-shadow 0.4s var(--ease-spring);
+}
+
+.discovery-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-card); }
+
+.discovery-image {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background: rgba(255, 255, 255, 0.05);
+  display: grid;
+  place-items: center;
+}
+
+.discovery-image img {
+  width: 46%;
+  height: 46%;
+  object-fit: contain;
+  background: #fff;
+  border-radius: 0.6rem;
+  padding: 8px;
+}
+
+.discovery-badge {
+  position: absolute;
+  top: 9px;
+  left: 9px;
+  padding: 4px 9px;
+  border-radius: 0.5rem;
+  background: rgba(11, 18, 36, 0.75);
+  color: var(--ink);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.discovery-save {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 1.9rem;
+  height: 1.9rem;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: rgba(11, 18, 36, 0.65);
+  color: var(--ink);
+  font-size: 0.95rem;
+  display: grid;
+  place-items: center;
+  transition: transform 0.3s var(--ease-hover), background 0.3s var(--ease-hover);
+}
+
+.discovery-save:hover { transform: scale(1.12); }
+.discovery-save.is-saved { background: linear-gradient(to bottom right, var(--accent), var(--accent-deep)); color: #fff; }
+
+.discovery-body { padding: 12px 13px 14px; display: grid; gap: 3px; }
+
+.discovery-body h4 {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--card-ink);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.discovery-provider {
+  min-width: 0;
+  font-size: 0.76rem;
+  color: var(--card-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.discovery-foot {
+  margin-top: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.76rem;
+}
+
+.discovery-cred { color: var(--accent); font-weight: 700; }
+.discovery-price { color: var(--card-muted); font-weight: 600; }
 
 /* ---------------- Almanac certificate cards ---------------- */
 .cert-grid {

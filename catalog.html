@@ -37,6 +37,8 @@
         <p class="lede">Free and low-cost certifications across six internship tracks - each one tells you the exact proof to build after, so it actually helps you get shortlisted.</p>
       </section>
 
+      <div id="discoveryRows"></div>
+
       <section class="panel section" aria-labelledby="catalogTitle">
         <div class="section-head">
           <div>
@@ -362,13 +364,106 @@
       });
     }
 
+    /* ---------------- Discovery rows: Airbnb-style horizontally-scrolling "Popular
+       in X" rows, one per role, sitting above the filterable grid. Purely additive -
+       the grid and its filters are untouched; clicking a discovery card opens the
+       same deck overlay, scoped to that row's own list via deckOverrideList. ---------------- */
+    const DISCOVERY_ROLES = [
+      { role: "marketing", label: "Popular in Marketing" },
+      { role: "data", label: "Popular in Data" },
+      { role: "product", label: "Popular in Product" },
+      { role: "finance", label: "Popular in Finance" },
+      { role: "design", label: "Popular in Design" },
+      { role: "software", label: "Popular in Software dev" }
+    ];
+    const DISCOVERY_ROW_SIZE = 10;
+
+    function discoveryRowCerts(role) {
+      return certificateData
+        .filter(cert => cert.role === role)
+        .sort((a, b) => certRank(b, role) - certRank(a, role))
+        .slice(0, DISCOVERY_ROW_SIZE);
+    }
+
+    function discoveryCardHtml(cert) {
+      const saved = isSaved(cert.title);
+      const cred = credentialOf(cert);
+      const logo = domainLogo(cert.url);
+      return `
+        <article class="discovery-card" data-title="${cert.title}">
+          <div class="discovery-image">
+            ${logo ? `<img src="${logo}" alt="" loading="lazy" onerror="this.style.display='none'">` : ""}
+            <span class="discovery-badge">${cred.label}</span>
+            <button class="discovery-save${saved ? " is-saved" : ""}" type="button" data-save="${cert.title}" aria-label="${saved ? "Remove from my space" : "Add to my space"}" title="${saved ? "Saved - click to remove" : "Add to my space"}">${saved ? "&#10003;" : "&#43;"}</button>
+          </div>
+          <div class="discovery-body">
+            <h4>${cert.title}</h4>
+            <p class="discovery-provider">${cert.provider}</p>
+          </div>
+          <div class="discovery-foot">
+            <span class="discovery-cred">${cert.hours} hrs</span>
+            <span class="discovery-price">${costBadge(cert)}</span>
+          </div>
+        </article>`;
+    }
+
+    function renderDiscoveryRows() {
+      const container = document.querySelector("#discoveryRows");
+      if (!container) return;
+      const rows = DISCOVERY_ROLES
+        .map(({ role, label }) => ({ role, label, certs: discoveryRowCerts(role) }))
+        .filter(row => row.certs.length);
+      if (!rows.length) { container.innerHTML = ""; return; }
+
+      container.innerHTML = rows.map(row => `
+        <section class="discovery-row" data-role="${row.role}">
+          <div class="discovery-head">
+            <h3>${row.label}</h3>
+            <div class="discovery-nav">
+              <button class="discovery-nav-btn" type="button" data-scroll="-1" aria-label="Scroll left">&#8592;</button>
+              <button class="discovery-nav-btn" type="button" data-scroll="1" aria-label="Scroll right">&#8594;</button>
+            </div>
+          </div>
+          <div class="discovery-track">
+            ${row.certs.map(discoveryCardHtml).join("")}
+          </div>
+        </section>
+      `).join("");
+    }
+
+    document.querySelector("#discoveryRows").addEventListener("click", event => {
+      const scrollBtn = event.target.closest("[data-scroll]");
+      if (scrollBtn) {
+        const track = scrollBtn.closest(".discovery-row").querySelector(".discovery-track");
+        track.scrollBy({ left: Number(scrollBtn.dataset.scroll) * track.clientWidth * 0.85, behavior: "smooth" });
+        return;
+      }
+      if (event.target.closest("[data-save]")) { onCardAction(event); return; }
+      onCardAction(event);
+      const card = event.target.closest(".discovery-card");
+      if (card && !event.target.closest("a, button")) {
+        const role = card.closest(".discovery-row").dataset.role;
+        const rowCerts = discoveryRowCerts(role);
+        const idx = rowCerts.findIndex(c => c.title === card.dataset.title);
+        if (idx >= 0) {
+          deckOverrideList = rowCerts;
+          openDeck(idx, card.getBoundingClientRect());
+        }
+      }
+    });
+
     /* ---------------- Deck overlay: click any grid card to open it centered and
        enlarged, with the rest of the current filtered list fanned behind it -
        drag, scroll (wheel), or arrow keys to move through from there. ---------------- */
     let deckIndex = 0;
+    // Normally the deck walks the live filtered grid list. A discovery-row card
+    // click passes its own row array here instead, since that card may not be in
+    // the current filter results at all.
+    let deckOverrideList = null;
     const deckOverlayEl = document.querySelector("#deckOverlay");
 
     function deckOpen() { return !deckOverlayEl.hidden; }
+    function activeMatches() { return deckOverrideList || getMatches(); }
 
     // sourceRect (a DOMRect from the clicked grid card) triggers a "zoom from
     // that card to centre" entrance; omit it for a plain fade-in (e.g. reopens).
@@ -377,7 +472,7 @@
       deckOverlayEl.hidden = false;
       document.body.style.overflow = "hidden";
       renderDeckContent(sourceRect);
-      const cert = getMatches()[deckIndex];
+      const cert = activeMatches()[deckIndex];
       analytics.track("deck_opened", { role: cert ? cert.role : null, cert_title: cert ? cert.title : null, meta: { source: "catalog" } });
     }
 
@@ -392,11 +487,12 @@
         deckOverlayEl.hidden = true;
         deckOverlayEl.innerHTML = "";
         document.body.style.overflow = "";
+        deckOverrideList = null;
       }, card ? 220 : 0);
     }
 
     function renderDeckContent(sourceRect, enterDirection) {
-      const matches = getMatches();
+      const matches = activeMatches();
       if (!matches.length) {
         deckOverlayEl.innerHTML = `<button class="deck-overlay-close" id="deckClose" aria-label="Close" type="button">&times;</button><p class="empty">No matches. Try clearing a filter.</p>`;
         return;
@@ -506,7 +602,7 @@
     let deckStepLock = false;
     function stepDeck(delta) {
       if (deckStepLock) return;
-      const matches = getMatches();
+      const matches = activeMatches();
       if (matches.length < 2) return;
       deckStepLock = true;
       window.setTimeout(() => { deckStepLock = false; }, 420);
@@ -585,6 +681,7 @@
         certificateData = (rows || []).map(normalizeCert);
         if (!certificateData.length) throw new Error("empty");
         renderCertificates();
+        renderDiscoveryRows();
         return;
       } catch (error) {
         /* fall through to the static fallback below */
@@ -598,6 +695,7 @@
         certificateData = (rows || []).map(cert => ({ ...cert, hours: cert.hours == null ? null : Number(cert.hours) }));
         if (!certificateData.length) throw new Error("empty");
         renderCertificates();
+        renderDiscoveryRows();
       } catch (error) {
         document.querySelector("#certCount").textContent = "Unavailable";
         grid.innerHTML = `<p class="empty">Couldn't load the catalog right now. Try the <a href="/">certificate finder on the home page</a>.</p>`;
@@ -610,6 +708,7 @@
     // outcome) - the grid always, plus the open deck card if the overlay is up.
     function refreshAfterAction() {
       renderCertificates();
+      renderDiscoveryRows();
       if (deckOpen()) renderDeckContent();
     }
 
@@ -686,6 +785,6 @@
     updateSpaceBadge();
     loadCatalog();
   </script>
-  <script src="/ui.js?v=2" defer></script>
+  <script src="/ui.js?v=3" defer></script>
 </body>
 </html>
