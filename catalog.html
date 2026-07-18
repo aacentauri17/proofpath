@@ -68,10 +68,14 @@
           </select>
         </div>
         <div class="cert-grid" id="certificateGrid"></div>
-        <div class="deck-overlay" id="deckOverlay" hidden></div>
       </section>
     </main>
   </div>
+
+  <!-- Lives outside .app/.panel on purpose: a transformed ancestor (e.g. the
+       scroll-reveal on .panel) would become the containing block for this
+       position:fixed overlay and break its full-viewport centering. -->
+  <div class="deck-overlay" id="deckOverlay" hidden></div>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -391,7 +395,7 @@
       }, card ? 220 : 0);
     }
 
-    function renderDeckContent(sourceRect) {
+    function renderDeckContent(sourceRect, enterDirection) {
       const matches = getMatches();
       if (!matches.length) {
         deckOverlayEl.innerHTML = `<button class="deck-overlay-close" id="deckClose" aria-label="Close" type="button">&times;</button><p class="empty">No matches. Try clearing a filter.</p>`;
@@ -459,8 +463,10 @@
 
       // FLIP-lite: on first open, start the card at the clicked grid card's exact
       // position/size, then release it to its natural centred/enlarged layout.
+      // On step (enterDirection set), start it where the ghost stack sits - so the
+      // "next" card visibly advances forward from behind, instead of just fading in.
+      const cardEl = document.querySelector("#deckCard");
       if (sourceRect) {
-        const cardEl = document.querySelector("#deckCard");
         const destRect = cardEl.getBoundingClientRect();
         const dx = (sourceRect.left + sourceRect.width / 2) - (destRect.left + destRect.width / 2);
         const dy = (sourceRect.top + sourceRect.height / 2) - (destRect.top + destRect.height / 2);
@@ -471,31 +477,45 @@
         cardEl.style.opacity = "0.6";
         void cardEl.offsetWidth; // force reflow so the transition below actually animates
         const settle = () => {
-          cardEl.style.transition = "transform 0.5s var(--ease-spring), opacity 0.4s ease";
+          cardEl.style.transition = "transform 0.45s var(--ease-spring), opacity 0.35s ease";
           cardEl.style.transform = "";
           cardEl.style.opacity = "1";
         };
         requestAnimationFrame(() => requestAnimationFrame(settle));
         window.setTimeout(settle, 60); // safety net if rAF is throttled (e.g. backgrounded tab)
+      } else if (enterDirection) {
+        const fromX = enterDirection > 0 ? 26 : -26;
+        cardEl.style.transition = "none";
+        cardEl.style.transform = `translate(${fromX}px, 12px) scale(0.94) rotate(${enterDirection > 0 ? 3 : -3}deg)`;
+        cardEl.style.opacity = "0.55";
+        void cardEl.offsetWidth;
+        const settle = () => {
+          cardEl.style.transition = "transform 0.4s var(--ease-spring), opacity 0.3s ease";
+          cardEl.style.transform = "";
+          cardEl.style.opacity = "1";
+        };
+        requestAnimationFrame(() => requestAnimationFrame(settle));
+        window.setTimeout(settle, 60);
       }
     }
 
-    // Advances the deck with a card-toss exit, then swaps content and eases the
-    // next card in - the "flip through a physical stack" feel.
+    // Advances the deck with a card-toss exit in the swipe direction, then brings
+    // the next card forward from the ghost stack's position - one clean, directional
+    // motion instead of a fade. Debounced so a single fast gesture (which can fire
+    // both a drag release AND a trackpad wheel event) only ever advances one card.
+    let deckStepLock = false;
     function stepDeck(delta) {
+      if (deckStepLock) return;
       const matches = getMatches();
       if (matches.length < 2) return;
+      deckStepLock = true;
+      window.setTimeout(() => { deckStepLock = false; }, 420);
       const card = document.querySelector("#deckCard");
       if (card) card.classList.add(delta > 0 ? "is-leaving-left" : "is-leaving-right");
       window.setTimeout(() => {
         deckIndex = (deckIndex + delta + matches.length) % matches.length;
-        renderDeckContent();
-        const fresh = document.querySelector("#deckCard");
-        if (fresh) {
-          fresh.classList.add("is-entering");
-          requestAnimationFrame(() => requestAnimationFrame(() => fresh.classList.remove("is-entering")));
-        }
-      }, card ? 220 : 0);
+        renderDeckContent(null, delta);
+      }, card ? 200 : 0);
     }
 
     function wireDeckSwipe() {
@@ -504,8 +524,10 @@
       let dragging = false, startX = 0, dx = 0;
       const threshold = 80;
       card.addEventListener("pointerdown", event => {
+        if (deckStepLock) return;
         dragging = true; startX = event.clientX; dx = 0;
         card.style.transition = "none";
+        card.setPointerCapture?.(event.pointerId);
       });
       card.addEventListener("pointermove", event => {
         if (!dragging) return;
@@ -522,12 +544,12 @@
       }
       card.addEventListener("pointerup", release);
       card.addEventListener("pointerleave", release);
+      card.addEventListener("pointercancel", release);
     }
 
     // One-time wiring: close (backdrop/X), prev/next, and every card action
     // (save/done/copy/outcome/linkedin/open) inside the overlay, delegated so it
     // survives every re-render without re-attaching listeners.
-    let deckWheelLock = false;
     deckOverlayEl.addEventListener("click", event => {
       if (event.target === deckOverlayEl) { closeDeck(); return; }
       if (event.target.closest("#deckClose")) { closeDeck(); return; }
@@ -539,12 +561,9 @@
     deckOverlayEl.addEventListener("wheel", event => {
       if (!deckOpen()) return;
       event.preventDefault();
-      if (deckWheelLock) return;
       const delta = Math.abs(event.deltaY) > Math.abs(event.deltaX) ? event.deltaY : event.deltaX;
       if (Math.abs(delta) < 12) return;
-      deckWheelLock = true;
       stepDeck(delta > 0 ? 1 : -1);
-      window.setTimeout(() => { deckWheelLock = false; }, 380);
     }, { passive: false });
 
     document.addEventListener("keydown", event => {
