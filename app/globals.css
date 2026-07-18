@@ -94,6 +94,10 @@ img { display: block; }
   width: 100vw;
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
+  /* .app's top padding would otherwise push nav's resting position down from
+     the true viewport edge before any scrolling happens - cancel it out so
+     the bar is flush with the top on first paint, not just once stuck. */
+  margin-top: calc(-1 * clamp(16px, 3vw, 34px));
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -636,214 +640,6 @@ select option { background: var(--bg-2); color: var(--ink); }
   gap: 22px;
 }
 
-/* ---------------- Deck overlay: click any grid card to open it centered,
-   enlarged, with the rest of the filtered list fanned behind it to the
-   right - drag, scroll, or arrow-key through from there. ---------------- */
-.deck-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 70;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 24px;
-  padding: clamp(16px, 4vw, 48px);
-  background: rgba(3, 5, 11, 0.74);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-.deck-overlay[hidden] { display: none !important; }
-
-.deck-overlay-close {
-  position: fixed;
-  top: 22px;
-  right: 22px;
-  z-index: 2;
-  width: 42px;
-  height: 42px;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--ink);
-  font-size: 1.3rem;
-  display: grid;
-  place-items: center;
-  transition: background 0.3s var(--ease-hover), transform 0.3s var(--ease-hover);
-}
-
-.deck-overlay-close:hover { background: rgba(255, 255, 255, 0.16); transform: scale(1.08); }
-
-.deck-stack {
-  position: relative;
-  width: min(32rem, 90vw);
-  height: min(32rem, 76vh);
-  touch-action: pan-y;
-}
-
-.deck-ghost {
-  position: absolute;
-  inset: 0;
-  border-radius: var(--radius-card);
-  background: var(--card);
-  border: 1px solid var(--card-border);
-  backdrop-filter: var(--card-blur);
-  -webkit-backdrop-filter: var(--card-blur);
-  box-shadow: 0 12px 30px rgba(2, 4, 10, 0.4);
-  transform-origin: center left;
-  pointer-events: none;
-}
-
-/* Ghosts fan out behind and to the right, echoing a real hand of cards. */
-.deck-ghost.g1 { transform: translate(22px, 10px) scale(0.95) rotate(3deg); opacity: 0.65; z-index: 1; }
-.deck-ghost.g2 { transform: translate(42px, 20px) scale(0.9) rotate(5.5deg); opacity: 0.35; z-index: 0; }
-
-.deck-card {
-  position: relative;
-  overflow: hidden;
-  z-index: 2;
-  height: 100%;
-  border-radius: var(--radius-card);
-  background: var(--card);
-  border: 1px solid var(--card-border);
-  backdrop-filter: var(--card-blur);
-  -webkit-backdrop-filter: var(--card-blur);
-  color: var(--card-ink);
-  padding: 32px;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.09) inset, 0 24px 60px rgba(2, 4, 10, 0.55);
-  cursor: grab;
-  transition: transform 0.45s var(--ease-spring), opacity 0.45s var(--ease-spring), box-shadow 0.3s ease;
-  user-select: none;
-}
-
-.deck-card:active { cursor: grabbing; }
-
-.deck-card.is-leaving-left { transform: translateX(-140%) rotate(-10deg); opacity: 0; }
-.deck-card.is-leaving-right { transform: translateX(140%) rotate(10deg); opacity: 0; }
-
-.deck-tile {
-  width: 5.5rem;
-  aspect-ratio: 1;
-  border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid var(--card-line);
-  display: grid;
-  place-items: center;
-  position: relative;
-  overflow: hidden;
-  color: var(--card-muted);
-  font-weight: 700;
-  font-size: 1.3rem;
-  flex: 0 0 auto;
-}
-
-.deck-tile img {
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  width: 58%;
-  height: 58%;
-  object-fit: contain;
-  background: #fff;
-  border-radius: 0.5rem;
-  padding: 5px;
-}
-
-.deck-head { display: flex; gap: 16px; align-items: center; }
-
-.deck-titles { min-width: 0; display: grid; gap: 5px; }
-
-.deck-provider {
-  font-size: 0.74rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--card-muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.deck-card h3 {
-  font-size: 1.4rem;
-  line-height: 1.25;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.deck-line { color: var(--card-muted); font-size: 0.88rem; font-weight: 500; }
-
-.deck-value {
-  color: var(--card-ink);
-  font-size: 0.98rem;
-  line-height: 1.55;
-  flex: 1;
-  display: -webkit-box;
-  -webkit-line-clamp: 5;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.deck-covers {
-  color: var(--card-muted);
-  font-size: 0.85rem;
-  font-style: italic;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.deck-proof {
-  background: var(--card-fill);
-  border-radius: var(--radius-control);
-  padding: 12px 14px;
-  font-size: 0.9rem;
-  color: var(--card-ink);
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.deck-foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding-top: 4px;
-  border-top: 1px solid var(--card-line);
-}
-
-.deck-controls { display: flex; align-items: center; gap: 18px; }
-
-.deck-nav-btn {
-  width: 3rem;
-  height: 3rem;
-  border-radius: var(--radius-pill);
-  border: 1px solid var(--line-strong);
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--ink);
-  font-size: 1.2rem;
-  display: grid;
-  place-items: center;
-  transition: transform 0.3s var(--ease-hover), background 0.3s var(--ease-hover);
-}
-
-.deck-nav-btn:hover { transform: scale(1.08); background: rgba(255, 255, 255, 0.09); }
-.deck-nav-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-
-.deck-counter { color: var(--muted); font-size: 0.85rem; font-weight: 600; min-width: 5rem; text-align: center; }
-
-@media (max-width: 560px) {
-  .deck-stack { min-height: 34rem; }
-}
-
 .cert-card {
   position: relative;
   overflow: hidden;
@@ -932,9 +728,10 @@ select option { background: var(--bg-2); color: var(--ink); }
 
 .cert-top {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 4px 10px;
 }
 
 .cert-provider {
@@ -1310,6 +1107,13 @@ select option { background: var(--bg-2); color: var(--ink); }
   z-index: -1;
   overflow: hidden;
   pointer-events: none;
+  /* Base tint under the canvas: guarantees a visibly colored, moving-feeling
+     backdrop is present regardless of shader subtlety or brightness on a
+     given display, instead of relying entirely on the WebGL layer. */
+  background:
+    radial-gradient(60rem 40rem at 20% 10%, rgba(124, 58, 237, 0.22), transparent 60%),
+    radial-gradient(50rem 36rem at 85% 90%, rgba(59, 130, 246, 0.18), transparent 60%),
+    var(--bg);
 }
 
 #darkveil-root canvas {
@@ -1320,5 +1124,6 @@ select option { background: var(--bg-2); color: var(--ink); }
      of this theme's own --bg, so it reads as "not animating" even though it
      is. Boost brightness/contrast/saturation purely as a display filter -
      the shader itself is untouched. */
-  filter: brightness(4) contrast(1.25) saturate(1.5);
+  filter: brightness(6) contrast(1.35) saturate(1.7);
+  mix-blend-mode: screen;
 }

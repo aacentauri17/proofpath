@@ -385,7 +385,7 @@ export default function ProfilePage() {
 
   return (
     <>
-      <div id="darkveil-root" aria-hidden="true"><DarkVeil hueShift={18} noiseIntensity={0.035} scanlineIntensity={0} speed={0.3} warpAmount={0.55} resolutionScale={1} /></div>
+      <div id="darkveil-root" aria-hidden="true"><DarkVeil hueShift={220} noiseIntensity={0.08} scanlineIntensity={0.12} speed={0.45} scanlineFrequency={0.35} warpAmount={1.2} resolutionScale={1} /></div>
       <div className="app">
         <nav className="nav" aria-label="Primary">
           <a className="brand" href="/">
@@ -431,7 +431,8 @@ export default function ProfilePage() {
                 </div>
                 <div className="field">
                   <label className="label" htmlFor="degree">Degree</label>
-                  <select id="degree" name="degree" defaultValue="Commerce / BBA">
+                  <select id="degree" name="degree" defaultValue="">
+                    <option value="" disabled>Select your degree</option>
                     <option>Commerce / BBA</option>
                     <option>Engineering / CS</option>
                     <option>Design / Media</option>
@@ -441,7 +442,8 @@ export default function ProfilePage() {
                 </div>
                 <div className="field">
                   <label className="label" htmlFor="targetRole">Target role</label>
-                  <select id="targetRole" name="targetRole" defaultValue="marketing">
+                  <select id="targetRole" name="targetRole" defaultValue="">
+                    <option value="" disabled>Select target role</option>
                     <option value="marketing">Marketing internship</option>
                     <option value="data">Data analyst internship</option>
                     <option value="product">Product internship</option>
@@ -464,7 +466,7 @@ export default function ProfilePage() {
                 <div className="field full">
                   <span className="label">Weekly time</span>
                   <div className="segmented">
-                    <input id="time1" type="radio" name="weeklyTime" value="3" defaultChecked />
+                    <input id="time1" type="radio" name="weeklyTime" value="3" />
                     <label htmlFor="time1">3 hrs</label>
                     <input id="time2" type="radio" name="weeklyTime" value="6" />
                     <label htmlFor="time2">6 hrs</label>

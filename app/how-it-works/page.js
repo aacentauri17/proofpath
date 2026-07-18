@@ -9,7 +9,7 @@ export default function HowItWorksPage() {
 
   return (
     <>
-      <div id="darkveil-root" aria-hidden="true"><DarkVeil hueShift={18} noiseIntensity={0.035} scanlineIntensity={0} speed={0.3} warpAmount={0.55} resolutionScale={1} /></div>
+      <div id="darkveil-root" aria-hidden="true"><DarkVeil hueShift={220} noiseIntensity={0.08} scanlineIntensity={0.12} speed={0.45} scanlineFrequency={0.35} warpAmount={1.2} resolutionScale={1} /></div>
       <div className="app">
         <nav className="nav" aria-label="Primary">
           <a className="brand" href="/">

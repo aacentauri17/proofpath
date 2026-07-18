@@ -206,6 +206,24 @@ export default function CatalogPage() {
       showToast.timer = window.setTimeout(() => toast.classList.remove("show"), 2200);
     }
 
+    // Tracks which grid cards are expanded so state survives re-renders.
+    const openCards = new Set();
+    function toggleCard(card) {
+      if (!card) return;
+      const title = card.dataset.title;
+      const details = card.querySelector(".cert-details");
+      if (!details) return;
+      const isOpen = openCards.has(title);
+      if (isOpen) openCards.delete(title); else openCards.add(title);
+      details.hidden = isOpen;
+      card.classList.toggle("is-open", !isOpen);
+      const toggle = card.querySelector("[data-toggle]");
+      if (toggle) {
+        toggle.textContent = isOpen ? "Details" : "Hide details";
+        toggle.setAttribute("aria-expanded", String(!isOpen));
+      }
+    }
+
     function getMatches() {
       const query = certSearch.value.trim().toLowerCase();
       const role = certRole.value;
@@ -221,10 +239,13 @@ export default function CatalogPage() {
       }).sort((a, b) => certRank(b, targetRole) - certRank(a, targetRole));
     }
 
+    // Same card anatomy and inline-expand behavior as the homepage finder -
+    // no separate deck/overlay view, just a "Details" toggle within the card.
     function renderCertificates() {
       const role = certRole.value;
       const matches = getMatches();
       const completed = getCompleted();
+      const outcomes = getOutcomes();
 
       const grid = document.querySelector("#certificateGrid");
       grid.innerHTML = "";
@@ -239,17 +260,21 @@ export default function CatalogPage() {
 
       matches.forEach((cert, index) => {
         const done = completed.has(cert.title);
+        const outcome = outcomes[cert.title];
         const saved = isSaved(cert.title);
         const cred = credentialOf(cert);
+        const subjects = cert.subjects || [];
+        const isOpen = openCards.has(cert.title);
+        const isTop = index === 0 && role !== "all";
         const card = document.createElement("article");
-        card.className = "cert-card" + (index === 0 && role !== "all" ? " is-top" : "");
+        card.className = "cert-card" + (isTop ? " is-top" : "") + (isOpen ? " is-open" : "");
         card.dataset.title = cert.title;
         card.innerHTML = `
           <div class="cert-head">
             ${tileHtml(cert, "cert-tile")}
             <div class="cert-body">
               <div class="cert-top">
-                <span class="cert-provider">${index === 0 && role !== "all" ? `<span class="top-flag">Top pick</span> &middot; ` : ""}${cert.provider}</span>
+                <span class="cert-provider">${isTop ? `<span class="top-flag">Top pick</span> &middot; ` : ""}${cert.provider}</span>
                 <span class="cred ${cred.has ? "cred-yes" : "cred-no"}">${cred.label}</span>
               </div>
               <h3>${cert.title}</h3>
@@ -259,9 +284,29 @@ export default function CatalogPage() {
           <div class="cert-foot">
             <span class="tag-chip">${cert.role}</span>
             <div style="display:flex; gap:8px; align-items:center;">
+              <button class="text-link" type="button" data-toggle aria-expanded="${isOpen}">${isOpen ? "Hide" : "Details"}</button>
               <a class="icon-btn open-btn" href="${cert.url}" target="_blank" rel="noreferrer" data-open="${cert.title}" aria-label="Open course" title="Open course">&#8599;</a>
               <button class="save-toggle${saved ? " is-saved" : ""}" type="button" data-save="${cert.title}" aria-label="${saved ? "Remove from my space" : "Add to my space"}" title="${saved ? "Saved - click to remove" : "Add to my space"}">${saved ? "&#10003;" : "+"}</button>
             </div>
+          </div>
+          <div class="cert-details"${isOpen ? "" : " hidden"}>
+            ${cert.priceNote ? `<p class="mini">Cost: ${cert.priceNote}</p>` : ""}
+            <p class="cert-value">${cert.value || ""}</p>
+            ${subjects.length ? `<p class="cert-covers">Covers ${subjects.slice(0, 4).join(", ")}</p>` : ""}
+            <p class="cert-proof"><strong>Proof to create:</strong> ${cert.proofTip || ""}</p>
+            <div class="cert-actions">
+              <button class="text-link" type="button" data-cert="${cert.title}">Copy proof idea</button>
+              <button class="text-link" type="button" data-done="${cert.title}">${done ? "Mark not done" : "Mark completed"}</button>
+            </div>
+            ${done ? (outcome
+              ? `<p class="mini">Thanks - logged that it ${outcome === "yes" ? "helped you get shortlisted" : "has not helped yet"}.</p>`
+              : `<div class="cert-actions" style="margin-top: 2px; padding-top: 10px; border-top: 1px solid var(--line);">
+                  <span class="mini">Did this help you get shortlisted?</span>
+                  <button class="text-link" type="button" data-outcome="yes" data-outcome-cert="${cert.title}">Yes</button>
+                  <button class="text-link" type="button" data-outcome="not-yet" data-outcome-cert="${cert.title}">Not yet</button>
+                </div>`)
+              : ""}
+            ${done ? `<div class="li-post" id="liPost-${escapeHtml(cert.title).replace(/[^a-z0-9]/gi, "")}"><button class="text-link" type="button" data-linkedin="${cert.title}">Draft a LinkedIn post about this</button></div>` : ""}
           </div>
         `;
         grid.appendChild(card);
@@ -325,181 +370,6 @@ export default function CatalogPage() {
       `).join("");
     }
 
-    let deckIndex = 0;
-    let deckOverrideList = null;
-    const deckOverlayEl = document.querySelector("#deckOverlay");
-
-    function deckOpen() { return !deckOverlayEl.hidden; }
-    function activeMatches() { return deckOverrideList || getMatches(); }
-
-    function openDeck(index, sourceRect) {
-      deckIndex = index;
-      deckOverlayEl.hidden = false;
-      document.body.style.overflow = "hidden";
-      renderDeckContent(sourceRect);
-      const cert = activeMatches()[deckIndex];
-      analytics.track("deck_opened", { role: cert ? cert.role : null, cert_title: cert ? cert.title : null, meta: { source: "catalog" } });
-    }
-
-    function closeDeck() {
-      const card = document.querySelector("#deckCard");
-      if (card) {
-        card.style.transition = "transform 0.3s var(--ease-hover), opacity 0.3s var(--ease-hover)";
-        card.style.transform = "scale(0.92) translateY(10px)";
-        card.style.opacity = "0";
-      }
-      window.setTimeout(() => {
-        deckOverlayEl.hidden = true;
-        deckOverlayEl.innerHTML = "";
-        document.body.style.overflow = "";
-        deckOverrideList = null;
-      }, card ? 220 : 0);
-    }
-
-    function renderDeckContent(sourceRect, enterDirection) {
-      const matches = activeMatches();
-      if (!matches.length) {
-        deckOverlayEl.innerHTML = `<button class="deck-overlay-close" id="deckClose" aria-label="Close" type="button">&times;</button><p class="empty">No matches. Try clearing a filter.</p>`;
-        return;
-      }
-      if (deckIndex >= matches.length) deckIndex = 0;
-      if (deckIndex < 0) deckIndex = matches.length - 1;
-
-      const completed = getCompleted();
-      const outcomes = getOutcomes();
-      const cert = matches[deckIndex];
-      const done = completed.has(cert.title);
-      const outcome = outcomes[cert.title];
-      const saved = isSaved(cert.title);
-      const cred = credentialOf(cert);
-      const subjects = cert.subjects || [];
-      const safeId = escapeHtml(cert.title).replace(/[^a-z0-9]/gi, "");
-
-      deckOverlayEl.innerHTML = `
-        <button class="deck-overlay-close" id="deckClose" aria-label="Close" type="button">&times;</button>
-        <div class="deck-stack">
-          ${matches.length > 2 ? `<div class="deck-ghost g2"></div>` : ""}
-          ${matches.length > 1 ? `<div class="deck-ghost g1"></div>` : ""}
-          <article class="deck-card" id="deckCard" data-title="${cert.title}">
-            <div class="deck-head">
-              ${tileHtml(cert, "deck-tile")}
-              <div class="deck-titles">
-                <span class="deck-provider">${cert.provider || ""}</span>
-                <h3>${cert.title}</h3>
-                <span class="cred ${cred.has ? "cred-yes" : "cred-no"}">${cred.label}</span>
-              </div>
-            </div>
-            <p class="deck-line">${costBadge(cert)} &middot; ${cert.hours} hrs &middot; ${cert.level || "All levels"}${done ? ` &middot; <span class="done">&#10003; Completed</span>` : ""}</p>
-            <p class="deck-value">${cert.value || ""}</p>
-            ${subjects.length ? `<p class="deck-covers">Covers ${subjects.slice(0, 5).join(", ")}</p>` : ""}
-            <p class="deck-proof"><strong>Proof to create:</strong> ${cert.proofTip || ""}</p>
-            ${done ? (outcome
-              ? `<p class="mini">Thanks - logged that it ${outcome === "yes" ? "helped you get shortlisted" : "has not helped yet"}.</p>`
-              : `<div class="cert-actions">
-                  <span class="mini">Did this help you get shortlisted?</span>
-                  <button class="text-link" type="button" data-outcome="yes" data-outcome-cert="${cert.title}">Yes</button>
-                  <button class="text-link" type="button" data-outcome="not-yet" data-outcome-cert="${cert.title}">Not yet</button>
-                </div>`)
-              : ""}
-            ${done ? `<div class="li-post" id="liPost-${safeId}"><button class="text-link" type="button" data-linkedin="${cert.title}">Draft a LinkedIn post about this</button></div>` : ""}
-            <div class="deck-foot">
-              <span class="tag-chip">${cert.role}</span>
-              <div style="display:flex; gap:8px; align-items:center;">
-                <button class="text-link" type="button" data-cert="${cert.title}">Copy proof idea</button>
-                <button class="text-link" type="button" data-done="${cert.title}">${done ? "Mark not done" : "Mark completed"}</button>
-                <a class="icon-btn open-btn" href="${cert.url}" target="_blank" rel="noreferrer" data-open="${cert.title}" aria-label="Open course" title="Open course">&#8599;</a>
-                <button class="save-toggle${saved ? " is-saved" : ""}" type="button" data-save="${cert.title}" aria-label="${saved ? "Remove from my space" : "Add to my space"}" title="${saved ? "Saved - click to remove" : "Add to my space"}">${saved ? "&#10003;" : "+"}</button>
-              </div>
-            </div>
-          </article>
-        </div>
-        <div class="deck-controls">
-          <button class="deck-nav-btn" type="button" id="deckPrev" aria-label="Previous card">&#8592;</button>
-          <span class="deck-counter">${deckIndex + 1} of ${matches.length}</span>
-          <button class="deck-nav-btn" type="button" id="deckNext" aria-label="Next card">&#8594;</button>
-        </div>
-      `;
-
-      wireDeckSwipe();
-
-      const cardEl = document.querySelector("#deckCard");
-      if (sourceRect) {
-        const destRect = cardEl.getBoundingClientRect();
-        const dx = (sourceRect.left + sourceRect.width / 2) - (destRect.left + destRect.width / 2);
-        const dy = (sourceRect.top + sourceRect.height / 2) - (destRect.top + destRect.height / 2);
-        const scaleX = Math.max(0.2, sourceRect.width / destRect.width);
-        const scaleY = Math.max(0.2, sourceRect.height / destRect.height);
-        cardEl.style.transition = "none";
-        cardEl.style.transform = `translate(${dx}px, ${dy}px) scale(${scaleX}, ${scaleY})`;
-        cardEl.style.opacity = "0.6";
-        void cardEl.offsetWidth;
-        const settle = () => {
-          cardEl.style.transition = "transform 0.45s var(--ease-spring), opacity 0.35s ease";
-          cardEl.style.transform = "";
-          cardEl.style.opacity = "1";
-        };
-        requestAnimationFrame(() => requestAnimationFrame(settle));
-        window.setTimeout(settle, 60);
-      } else if (enterDirection) {
-        const fromX = enterDirection > 0 ? 26 : -26;
-        cardEl.style.transition = "none";
-        cardEl.style.transform = `translate(${fromX}px, 12px) scale(0.94) rotate(${enterDirection > 0 ? 3 : -3}deg)`;
-        cardEl.style.opacity = "0.55";
-        void cardEl.offsetWidth;
-        const settle = () => {
-          cardEl.style.transition = "transform 0.4s var(--ease-spring), opacity 0.3s ease";
-          cardEl.style.transform = "";
-          cardEl.style.opacity = "1";
-        };
-        requestAnimationFrame(() => requestAnimationFrame(settle));
-        window.setTimeout(settle, 60);
-      }
-    }
-
-    let deckStepLock = false;
-    function stepDeck(delta) {
-      if (deckStepLock) return;
-      const matches = activeMatches();
-      if (matches.length < 2) return;
-      deckStepLock = true;
-      window.setTimeout(() => { deckStepLock = false; }, 420);
-      const card = document.querySelector("#deckCard");
-      if (card) card.classList.add(delta > 0 ? "is-leaving-left" : "is-leaving-right");
-      window.setTimeout(() => {
-        deckIndex = (deckIndex + delta + matches.length) % matches.length;
-        renderDeckContent(null, delta);
-      }, card ? 200 : 0);
-    }
-
-    function wireDeckSwipe() {
-      const card = document.querySelector("#deckCard");
-      if (!card) return;
-      let dragging = false, startX = 0, dx = 0;
-      const threshold = 80;
-      card.addEventListener("pointerdown", event => {
-        if (deckStepLock) return;
-        dragging = true; startX = event.clientX; dx = 0;
-        card.style.transition = "none";
-        card.setPointerCapture?.(event.pointerId);
-      });
-      card.addEventListener("pointermove", event => {
-        if (!dragging) return;
-        dx = event.clientX - startX;
-        card.style.transform = `translateX(${dx}px) rotate(${dx / 24}deg)`;
-      });
-      function release() {
-        if (!dragging) return;
-        dragging = false;
-        card.style.transition = "";
-        card.style.transform = "";
-        if (Math.abs(dx) > threshold) stepDeck(dx < 0 ? 1 : -1);
-        dx = 0;
-      }
-      card.addEventListener("pointerup", release);
-      card.addEventListener("pointerleave", release);
-      card.addEventListener("pointercancel", release);
-    }
-
     function onCardAction(event) {
       const outcomeBtn = event.target.closest("[data-outcome]");
       if (outcomeBtn) {
@@ -558,12 +428,15 @@ export default function CatalogPage() {
         if (cert) draftLinkedInPost(cert, liBtn.closest(".li-post"));
         return;
       }
+      const toggleBtn = event.target.closest("[data-toggle]");
+      if (toggleBtn) { toggleCard(toggleBtn.closest(".cert-card")); return; }
+      const card = event.target.closest(".cert-card");
+      if (card && !event.target.closest("a, button")) toggleCard(card);
     }
 
     function refreshAfterAction() {
       renderCertificates();
       renderDiscoveryRows();
-      if (deckOpen()) renderDeckContent();
     }
 
     async function loadCatalog() {
@@ -594,7 +467,7 @@ export default function CatalogPage() {
       }
     }
 
-    const onFilterInput = () => { deckIndex = 0; renderCertificates(); };
+    const onFilterInput = () => renderCertificates();
     [certSearch, certRole, certCost, certTime].forEach(control => control.addEventListener("input", onFilterInput));
 
     const discoveryRowsEl = document.querySelector("#discoveryRows");
@@ -606,58 +479,20 @@ export default function CatalogPage() {
         return;
       }
       if (event.target.closest("[data-save]")) { onCardAction(event); return; }
-      onCardAction(event);
       const card = event.target.closest(".discovery-card");
       if (card && !event.target.closest("a, button")) {
         const role = card.closest(".discovery-row").dataset.role;
-        const rowCerts = discoveryRowCerts(role);
-        const idx = rowCerts.findIndex(c => c.title === card.dataset.title);
-        if (idx >= 0) {
-          deckOverrideList = rowCerts;
-          openDeck(idx, card.getBoundingClientRect());
+        const cert = discoveryRowCerts(role).find(c => c.title === card.dataset.title);
+        if (cert) {
+          analytics.track("cert_opened", { role: cert.role, cert_title: cert.title, cert_provider: cert.provider, meta: { source: "discovery_row" } });
+          window.open(cert.url, "_blank", "noreferrer");
         }
       }
     };
     discoveryRowsEl.addEventListener("click", onDiscoveryClick);
 
-    const onDeckOverlayClick = event => {
-      if (event.target === deckOverlayEl) { closeDeck(); return; }
-      if (event.target.closest("#deckClose")) { closeDeck(); return; }
-      if (event.target.closest("#deckPrev")) { stepDeck(-1); return; }
-      if (event.target.closest("#deckNext")) { stepDeck(1); return; }
-      onCardAction(event);
-    };
-    deckOverlayEl.addEventListener("click", onDeckOverlayClick);
-
-    const onDeckWheel = event => {
-      if (!deckOpen()) return;
-      event.preventDefault();
-      const delta = Math.abs(event.deltaY) > Math.abs(event.deltaX) ? event.deltaY : event.deltaX;
-      if (Math.abs(delta) < 12) return;
-      stepDeck(delta > 0 ? 1 : -1);
-    };
-    deckOverlayEl.addEventListener("wheel", onDeckWheel, { passive: false });
-
-    const onKeydown = event => {
-      if (!deckOpen()) return;
-      if (/input|textarea|select/i.test(event.target.tagName)) return;
-      if (event.key === "Escape") { closeDeck(); return; }
-      if (event.key === "ArrowRight") stepDeck(1);
-      if (event.key === "ArrowLeft") stepDeck(-1);
-    };
-    document.addEventListener("keydown", onKeydown);
-
     const gridEl = document.querySelector("#certificateGrid");
-    const onGridClick = event => {
-      onCardAction(event);
-      const card = event.target.closest(".cert-card");
-      if (card && !event.target.closest("a, button")) {
-        const matches = getMatches();
-        const idx = matches.findIndex(c => c.title === card.dataset.title);
-        if (idx >= 0) openDeck(idx, card.getBoundingClientRect());
-      }
-    };
-    gridEl.addEventListener("click", onGridClick);
+    gridEl.addEventListener("click", onCardAction);
 
     updateSpaceBadge();
     loadCatalog();
@@ -665,16 +500,13 @@ export default function CatalogPage() {
     return () => {
       [certSearch, certRole, certCost, certTime].forEach(control => control.removeEventListener("input", onFilterInput));
       discoveryRowsEl.removeEventListener("click", onDiscoveryClick);
-      deckOverlayEl.removeEventListener("click", onDeckOverlayClick);
-      deckOverlayEl.removeEventListener("wheel", onDeckWheel);
-      document.removeEventListener("keydown", onKeydown);
-      gridEl.removeEventListener("click", onGridClick);
+      gridEl.removeEventListener("click", onCardAction);
     };
   }, []);
 
   return (
     <>
-      <div id="darkveil-root" aria-hidden="true"><DarkVeil hueShift={18} noiseIntensity={0.035} scanlineIntensity={0} speed={0.3} warpAmount={0.55} resolutionScale={1} /></div>
+      <div id="darkveil-root" aria-hidden="true"><DarkVeil hueShift={220} noiseIntensity={0.08} scanlineIntensity={0.12} speed={0.45} scanlineFrequency={0.35} warpAmount={1.2} resolutionScale={1} /></div>
       <div className="app">
         <nav className="nav" aria-label="Primary">
           <a className="brand" href="/">
@@ -736,7 +568,6 @@ export default function CatalogPage() {
         </main>
       </div>
 
-      <div className="deck-overlay" id="deckOverlay" hidden></div>
       <div className="toast" id="toast" role="status" aria-live="polite"></div>
     </>
   );
