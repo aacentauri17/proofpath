@@ -57,6 +57,7 @@
    this dot density. */
 (function () {
   if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  if (document.body.classList.contains("has-darkveil")) return; // homepage uses DarkVeil instead
 
   const canvas = document.createElement("canvas");
   canvas.id = "bg-dots";

@@ -1,0 +1,48 @@
+/* Specular rim-light overlay for .btn elements, decorated in place by
+   react-src/islands.jsx. The fx canvas sits behind the button's own content
+   (wrapped in .specular-button__label so text/badges stay readable). */
+.btn.specular-active {
+  position: relative;
+  overflow: visible;
+}
+
+.specular-button__fx {
+  position: absolute;
+  inset: -14px;
+  z-index: 0;
+  display: block;
+  pointer-events: none;
+}
+
+.specular-button__fx-canvas,
+.specular-button__fx-canvas canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.btn.specular-active > .specular-button__label {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Full-bleed WebGL background mounted by DarkVeil on the homepage only, in
+   place of the ambient dot-grid canvas used on the other pages. Lives outside
+   .app (see index.html) so a transformed scroll-reveal ancestor can't hijack
+   it as the position:fixed containing block. */
+#darkveil-root {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+#darkveil-root canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}

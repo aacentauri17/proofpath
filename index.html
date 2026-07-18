@@ -23,8 +23,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/react-src/islands.css">
 </head>
-<body>
+<body class="has-darkveil">
+  <!-- Lives outside .app on purpose, same reasoning as the deck overlay: a
+       transformed scroll-reveal ancestor would hijack this fixed layer's
+       containing block. Replaces the ambient dot-grid canvas on this page. -->
+  <div id="darkveil-root" aria-hidden="true"></div>
   <div class="app">
     <header class="masthead">
       <nav class="nav" aria-label="Primary">
@@ -1382,6 +1387,7 @@
       document.querySelector("#recSection").scrollIntoView({ behavior: "smooth", block: "start" });
     }
   </script>
-  <script src="/ui.js?v=3" defer></script>
+  <script src="/ui.js?v=4" defer></script>
+  <script src="/islands.bundle.js" defer></script>
 </body>
 </html>
