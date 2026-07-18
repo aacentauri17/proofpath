@@ -3,14 +3,14 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "build:islands": "esbuild react-src/islands.jsx --bundle --minify --jsx=automatic --outfile=islands.bundle.js"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
   },
   "dependencies": {
+    "next": "^14.2.5",
     "ogl": "^1.0.11",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
-  },
-  "devDependencies": {
-    "esbuild": "^0.24.0"
   }
 }

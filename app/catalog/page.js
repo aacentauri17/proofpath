@@ -1,93 +1,17 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Certificate catalog - CredKit</title>
-  <meta name="description" content="Browse free and low-cost certifications across marketing, data, product, finance, design, and software - each with the proof to build after.">
-  <meta name="theme-color" content="#070b16">
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css">
-  <link rel="stylesheet" href="/react-src/islands.css">
-</head>
-<body>
-  <div class="app">
-    <nav class="nav" aria-label="Primary">
-      <a class="brand" href="/">
-        <svg class="brand-logo" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
-          <rect x="10" y="3" width="21" height="21" rx="5.5" fill="#cf8047" opacity="0.35"></rect>
-          <rect x="6.5" y="7.5" width="21" height="21" rx="5.5" fill="#cf8047" opacity="0.7"></rect>
-          <rect x="3" y="12" width="21" height="21" rx="5.5" fill="#f5f7fa"></rect>
-          <path d="M8.5 23l4 4 8-9" fill="none" stroke="#0b1224" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path>
-        </svg>
-        <span>CredKit</span>
-      </a>
-      <div class="nav-actions">
-        <a class="btn ghost" href="/how-it-works">How it works</a>
-        <a class="btn nav-btn-badge" href="/profile">My space<span class="badge-count" id="spaceBadge" hidden>0</span></a>
-        <a class="btn primary" href="/">Get certificates picked for me</a>
-      </div>
-    </nav>
+"use client";
 
-    <main>
-      <section style="padding: clamp(20px, 4vw, 44px) 0 clamp(8px, 2vw, 16px);">
-        <h1>Browse every certification, ranked by proof value.</h1>
-        <p class="lede">Free and low-cost certifications across six internship tracks - each one tells you the exact proof to build after, so it actually helps you get shortlisted.</p>
-      </section>
+import { useEffect } from "react";
+import DotGrid from "../../components/DotGrid";
+import SpecularBtn from "../../components/SpecularBtn";
+import { useSiteChrome } from "../../lib/siteChrome";
 
-      <div id="discoveryRows"></div>
+const SUPABASE_URL = "https://hyynugpbmvqckksmalel.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_4gD59CrE0ty8H3wDj6EzlQ_Zd7PBKKQ";
 
-      <section class="panel section" aria-labelledby="catalogTitle">
-        <div class="section-head">
-          <div>
-            <h2 id="catalogTitle">Find a certificate</h2>
-            <p>Filter by track, cost, and time. Click a card for topics and the proof to build.</p>
-          </div>
-          <span class="pill" id="certCount">Loading…</span>
-        </div>
-        <div class="finder-controls">
-          <input id="certSearch" type="search" placeholder="Search provider, skill, certificate">
-          <select id="certRole">
-            <option value="all">All roles</option>
-            <option value="marketing">Marketing</option>
-            <option value="data">Data</option>
-            <option value="product">Product</option>
-            <option value="finance">Finance</option>
-            <option value="design">Design</option>
-            <option value="software">Software dev</option>
-          </select>
-          <select id="certCost">
-            <option value="all">Any cost (incl. paid)</option>
-            <option value="free">Free only</option>
-            <option value="cheap">Free or cheap</option>
-          </select>
-          <select id="certTime">
-            <option value="all">Any time</option>
-            <option value="short">Under 5 hrs</option>
-            <option value="weekend">Weekend</option>
-          </select>
-        </div>
-        <div class="cert-grid" id="certificateGrid"></div>
-      </section>
-    </main>
-  </div>
+export default function CatalogPage() {
+  useSiteChrome();
 
-  <!-- Lives outside .app/.panel on purpose: a transformed ancestor (e.g. the
-       scroll-reveal on .panel) would become the containing block for this
-       position:fixed overlay and break its full-viewport centering. -->
-  <div class="deck-overlay" id="deckOverlay" hidden></div>
-
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
-
-  <script>
-    /* Browsable certificate catalog. Loads live from Supabase (same project as the
-       readiness app). Card UI matches the home finder via the shared styles.css. */
-    const SUPABASE_URL = "https://hyynugpbmvqckksmalel.supabase.co";
-    const SUPABASE_ANON_KEY = "sb_publishable_4gD59CrE0ty8H3wDj6EzlQ_Zd7PBKKQ"; // publishable (public) key
-
+  useEffect(() => {
     const analytics = {
       enabled() { return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY); },
       sessionId() {
@@ -137,9 +61,7 @@
       localStorage.setItem(certOutcomeKey, JSON.stringify(outcomes));
     }
 
-    // "My space" cart - shared with the home page finder via the same localStorage key.
     const savedCoursesKey = "proofpath-saved-courses";
-
     function getSavedCourses() {
       try { return JSON.parse(localStorage.getItem(savedCoursesKey)) || []; }
       catch (error) { return []; }
@@ -152,11 +74,7 @@
       let nowSaved;
       if (idx >= 0) { saved.splice(idx, 1); nowSaved = false; }
       else {
-        saved.push({
-          title: cert.title, provider: cert.provider, url: cert.url,
-          cost: cert.priceNote || cert.cost, hours: cert.hours, level: cert.level,
-          role: cert.role, addedAt: Date.now()
-        });
+        saved.push({ title: cert.title, provider: cert.provider, url: cert.url, cost: cert.priceNote || cert.cost, hours: cert.hours, level: cert.level, role: cert.role, addedAt: Date.now() });
         nowSaved = true;
       }
       localStorage.setItem(savedCoursesKey, JSON.stringify(saved));
@@ -186,10 +104,8 @@
     function fallbackLinkedInPost(cert) {
       const tag = String(cert.role || "career").replace(/[^a-z0-9]/gi, "");
       return [
-        `Just finished "${cert.title}" from ${cert.provider}. 🎓`,
-        "",
-        cert.proofTip ? `Next up: ${cert.proofTip}` : "Excited to put this into practice.",
-        "",
+        `Just finished "${cert.title}" from ${cert.provider}. 🎓`, "",
+        cert.proofTip ? `Next up: ${cert.proofTip}` : "Excited to put this into practice.", "",
         `#Certification #${tag} #StudentLife`
       ].join("\n");
     }
@@ -201,17 +117,14 @@
       let text;
       try {
         const res = await fetch("/api/linkedin-post", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+          method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ title: cert.title, provider: cert.provider, proofTip: cert.proofTip, role: cert.role, name: info.name, achievements: info.achievements })
         });
         if (!res.ok) throw new Error("http " + res.status);
         const data = await res.json();
         text = data.post;
         if (!text) throw new Error("empty");
-      } catch (error) {
-        text = fallbackLinkedInPost(cert);
-      }
+      } catch (error) { text = fallbackLinkedInPost(cert); }
       const safeId = escapeHtml(cert.title).replace(/[^a-z0-9]/gi, "");
       container.innerHTML = `
         <label class="label" for="liText-${safeId}">Your draft post</label>
@@ -233,8 +146,7 @@
       return {
         role: row.role, provider: row.provider, title: row.title, cost: row.cost,
         priceNote: row.price_note, hours: row.hours, level: row.level, certType: row.cert_type,
-        recognized: row.recognized,
-        subjects: Array.isArray(row.subjects) ? row.subjects : (row.subjects || []),
+        recognized: row.recognized, subjects: Array.isArray(row.subjects) ? row.subjects : (row.subjects || []),
         value: row.value, url: row.url, proofTip: row.proof_tip
       };
     }
@@ -248,29 +160,21 @@
       return (cert.role === targetRole ? 100 : 0) + (cert.recognized ? 12 : 0) + linkedinTier(cert.value || "") * 10 - (cert.hours || 0) * 0.2;
     }
 
-    // Compact cost indicator for the card's meta line; the full priceNote lives in
-    // the details panel to keep collapsed cards scannable.
     function costBadge(cert) {
       if (cert.cost === "free") return "Free";
       if (cert.cost === "cheap") return "Low cost";
       return "Paid";
     }
 
-    // Provider initials shown on the card's square visual tile.
     function tileMark(provider) {
-      return String(provider || "?").split(/[\s/]+/).filter(Boolean).slice(0, 2)
-        .map(w => w[0].toUpperCase()).join("");
+      return String(provider || "?").split(/[\s/]+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join("");
     }
 
-    // Real provider logo via the course's own domain favicon; initials render
-    // underneath so a failed/blank logo still leaves a clean fallback.
     function domainLogo(url) {
       try {
         const host = new URL(url).hostname.replace(/^www\./, "");
         return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=128`;
-      } catch (error) {
-        return null;
-      }
+      } catch (error) { return null; }
     }
 
     function tileHtml(cert, cls) {
@@ -302,13 +206,12 @@
       showToast.timer = window.setTimeout(() => toast.classList.remove("show"), 2200);
     }
 
-    // Shared by grid and deck views so filtering/ranking never drifts between them.
     function getMatches() {
       const query = certSearch.value.trim().toLowerCase();
       const role = certRole.value;
       const cost = certCost.value;
       const time = certTime.value;
-      const targetRole = role; // on the catalog page, the chosen role filter drives ranking
+      const targetRole = role;
       return certificateData.filter(cert => {
         const text = `${cert.provider} ${cert.title} ${cert.value} ${cert.proofTip} ${(cert.subjects || []).join(" ")} ${cert.level || ""}`.toLowerCase();
         const roleOk = role === "all" || cert.role === role;
@@ -365,10 +268,6 @@
       });
     }
 
-    /* ---------------- Discovery rows: Airbnb-style horizontally-scrolling "Popular
-       in X" rows, one per role, sitting above the filterable grid. Purely additive -
-       the grid and its filters are untouched; clicking a discovery card opens the
-       same deck overlay, scoped to that row's own list via deckOverrideList. ---------------- */
     const DISCOVERY_ROLES = [
       { role: "marketing", label: "Popular in Marketing" },
       { role: "data", label: "Popular in Data" },
@@ -380,10 +279,7 @@
     const DISCOVERY_ROW_SIZE = 10;
 
     function discoveryRowCerts(role) {
-      return certificateData
-        .filter(cert => cert.role === role)
-        .sort((a, b) => certRank(b, role) - certRank(a, role))
-        .slice(0, DISCOVERY_ROW_SIZE);
+      return certificateData.filter(cert => cert.role === role).sort((a, b) => certRank(b, role) - certRank(a, role)).slice(0, DISCOVERY_ROW_SIZE);
     }
 
     function discoveryCardHtml(cert) {
@@ -411,11 +307,8 @@
     function renderDiscoveryRows() {
       const container = document.querySelector("#discoveryRows");
       if (!container) return;
-      const rows = DISCOVERY_ROLES
-        .map(({ role, label }) => ({ role, label, certs: discoveryRowCerts(role) }))
-        .filter(row => row.certs.length);
+      const rows = DISCOVERY_ROLES.map(({ role, label }) => ({ role, label, certs: discoveryRowCerts(role) })).filter(row => row.certs.length);
       if (!rows.length) { container.innerHTML = ""; return; }
-
       container.innerHTML = rows.map(row => `
         <section class="discovery-row" data-role="${row.role}">
           <div class="discovery-head">
@@ -432,42 +325,13 @@
       `).join("");
     }
 
-    document.querySelector("#discoveryRows").addEventListener("click", event => {
-      const scrollBtn = event.target.closest("[data-scroll]");
-      if (scrollBtn) {
-        const track = scrollBtn.closest(".discovery-row").querySelector(".discovery-track");
-        track.scrollBy({ left: Number(scrollBtn.dataset.scroll) * track.clientWidth * 0.85, behavior: "smooth" });
-        return;
-      }
-      if (event.target.closest("[data-save]")) { onCardAction(event); return; }
-      onCardAction(event);
-      const card = event.target.closest(".discovery-card");
-      if (card && !event.target.closest("a, button")) {
-        const role = card.closest(".discovery-row").dataset.role;
-        const rowCerts = discoveryRowCerts(role);
-        const idx = rowCerts.findIndex(c => c.title === card.dataset.title);
-        if (idx >= 0) {
-          deckOverrideList = rowCerts;
-          openDeck(idx, card.getBoundingClientRect());
-        }
-      }
-    });
-
-    /* ---------------- Deck overlay: click any grid card to open it centered and
-       enlarged, with the rest of the current filtered list fanned behind it -
-       drag, scroll (wheel), or arrow keys to move through from there. ---------------- */
     let deckIndex = 0;
-    // Normally the deck walks the live filtered grid list. A discovery-row card
-    // click passes its own row array here instead, since that card may not be in
-    // the current filter results at all.
     let deckOverrideList = null;
     const deckOverlayEl = document.querySelector("#deckOverlay");
 
     function deckOpen() { return !deckOverlayEl.hidden; }
     function activeMatches() { return deckOverrideList || getMatches(); }
 
-    // sourceRect (a DOMRect from the clicked grid card) triggers a "zoom from
-    // that card to centre" entrance; omit it for a plain fade-in (e.g. reopens).
     function openDeck(index, sourceRect) {
       deckIndex = index;
       deckOverlayEl.hidden = false;
@@ -558,10 +422,6 @@
 
       wireDeckSwipe();
 
-      // FLIP-lite: on first open, start the card at the clicked grid card's exact
-      // position/size, then release it to its natural centred/enlarged layout.
-      // On step (enterDirection set), start it where the ghost stack sits - so the
-      // "next" card visibly advances forward from behind, instead of just fading in.
       const cardEl = document.querySelector("#deckCard");
       if (sourceRect) {
         const destRect = cardEl.getBoundingClientRect();
@@ -572,14 +432,14 @@
         cardEl.style.transition = "none";
         cardEl.style.transform = `translate(${dx}px, ${dy}px) scale(${scaleX}, ${scaleY})`;
         cardEl.style.opacity = "0.6";
-        void cardEl.offsetWidth; // force reflow so the transition below actually animates
+        void cardEl.offsetWidth;
         const settle = () => {
           cardEl.style.transition = "transform 0.45s var(--ease-spring), opacity 0.35s ease";
           cardEl.style.transform = "";
           cardEl.style.opacity = "1";
         };
         requestAnimationFrame(() => requestAnimationFrame(settle));
-        window.setTimeout(settle, 60); // safety net if rAF is throttled (e.g. backgrounded tab)
+        window.setTimeout(settle, 60);
       } else if (enterDirection) {
         const fromX = enterDirection > 0 ? 26 : -26;
         cardEl.style.transition = "none";
@@ -596,10 +456,6 @@
       }
     }
 
-    // Advances the deck with a card-toss exit in the swipe direction, then brings
-    // the next card forward from the ghost stack's position - one clean, directional
-    // motion instead of a fade. Debounced so a single fast gesture (which can fire
-    // both a drag release AND a trackpad wheel event) only ever advances one card.
     let deckStepLock = false;
     function stepDeck(delta) {
       if (deckStepLock) return;
@@ -642,75 +498,6 @@
       card.addEventListener("pointerup", release);
       card.addEventListener("pointerleave", release);
       card.addEventListener("pointercancel", release);
-    }
-
-    // One-time wiring: close (backdrop/X), prev/next, and every card action
-    // (save/done/copy/outcome/linkedin/open) inside the overlay, delegated so it
-    // survives every re-render without re-attaching listeners.
-    deckOverlayEl.addEventListener("click", event => {
-      if (event.target === deckOverlayEl) { closeDeck(); return; }
-      if (event.target.closest("#deckClose")) { closeDeck(); return; }
-      if (event.target.closest("#deckPrev")) { stepDeck(-1); return; }
-      if (event.target.closest("#deckNext")) { stepDeck(1); return; }
-      onCardAction(event);
-    });
-
-    deckOverlayEl.addEventListener("wheel", event => {
-      if (!deckOpen()) return;
-      event.preventDefault();
-      const delta = Math.abs(event.deltaY) > Math.abs(event.deltaX) ? event.deltaY : event.deltaX;
-      if (Math.abs(delta) < 12) return;
-      stepDeck(delta > 0 ? 1 : -1);
-    }, { passive: false });
-
-    document.addEventListener("keydown", event => {
-      if (!deckOpen()) return;
-      if (/input|textarea|select/i.test(event.target.tagName)) return;
-      if (event.key === "Escape") { closeDeck(); return; }
-      if (event.key === "ArrowRight") stepDeck(1);
-      if (event.key === "ArrowLeft") stepDeck(-1);
-    });
-
-    async function loadCatalog() {
-      const grid = document.querySelector("#certificateGrid");
-      try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/certificates?select=*&order=role.asc`, {
-          headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` }
-        });
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        const rows = await res.json();
-        certificateData = (rows || []).map(normalizeCert);
-        if (!certificateData.length) throw new Error("empty");
-        renderCertificates();
-        renderDiscoveryRows();
-        return;
-      } catch (error) {
-        /* fall through to the static fallback below */
-      }
-      // Second line of defence: a static snapshot bundled with the site, in case
-      // Supabase is empty or unreachable. Kept in sync by tools/sync-catalog.js.
-      try {
-        const res = await fetch("/catalog-data.json");
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        const rows = await res.json();
-        certificateData = (rows || []).map(cert => ({ ...cert, hours: cert.hours == null ? null : Number(cert.hours) }));
-        if (!certificateData.length) throw new Error("empty");
-        renderCertificates();
-        renderDiscoveryRows();
-      } catch (error) {
-        document.querySelector("#certCount").textContent = "Unavailable";
-        grid.innerHTML = `<p class="empty">Couldn't load the catalog right now. Try the <a href="/">certificate finder on the home page</a>.</p>`;
-      }
-    }
-
-    [certSearch, certRole, certCost, certTime].forEach(control => control.addEventListener("input", () => { deckIndex = 0; renderCertificates(); }));
-
-    // Keeps whichever view(s) are relevant in sync after an action (save/done/
-    // outcome) - the grid always, plus the open deck card if the overlay is up.
-    function refreshAfterAction() {
-      renderCertificates();
-      renderDiscoveryRows();
-      if (deckOpen()) renderDeckContent();
     }
 
     function onCardAction(event) {
@@ -756,9 +543,9 @@
         );
         return;
       }
-      const saveBtn = event.target.closest("[data-save]");
-      if (saveBtn) {
-        const cert = findCert(saveBtn.dataset.save);
+      const saveBtnEl = event.target.closest("[data-save]");
+      if (saveBtnEl) {
+        const cert = findCert(saveBtnEl.dataset.save);
         if (!cert) return;
         const nowSaved = toggleSaved(cert);
         showToast(nowSaved ? "Added to your space." : "Removed from your space.");
@@ -773,7 +560,95 @@
       }
     }
 
-    document.querySelector("#certificateGrid").addEventListener("click", event => {
+    function refreshAfterAction() {
+      renderCertificates();
+      renderDiscoveryRows();
+      if (deckOpen()) renderDeckContent();
+    }
+
+    async function loadCatalog() {
+      const grid = document.querySelector("#certificateGrid");
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/certificates?select=*&order=role.asc`, {
+          headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` }
+        });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const rows = await res.json();
+        certificateData = (rows || []).map(normalizeCert);
+        if (!certificateData.length) throw new Error("empty");
+        renderCertificates();
+        renderDiscoveryRows();
+        return;
+      } catch (error) { /* fall through to the static fallback below */ }
+      try {
+        const res = await fetch("/catalog-data.json");
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const rows = await res.json();
+        certificateData = (rows || []).map(cert => ({ ...cert, hours: cert.hours == null ? null : Number(cert.hours) }));
+        if (!certificateData.length) throw new Error("empty");
+        renderCertificates();
+        renderDiscoveryRows();
+      } catch (error) {
+        document.querySelector("#certCount").textContent = "Unavailable";
+        grid.innerHTML = `<p class="empty">Couldn't load the catalog right now. Try the <a href="/">certificate finder on the home page</a>.</p>`;
+      }
+    }
+
+    const onFilterInput = () => { deckIndex = 0; renderCertificates(); };
+    [certSearch, certRole, certCost, certTime].forEach(control => control.addEventListener("input", onFilterInput));
+
+    const discoveryRowsEl = document.querySelector("#discoveryRows");
+    const onDiscoveryClick = event => {
+      const scrollBtn = event.target.closest("[data-scroll]");
+      if (scrollBtn) {
+        const track = scrollBtn.closest(".discovery-row").querySelector(".discovery-track");
+        track.scrollBy({ left: Number(scrollBtn.dataset.scroll) * track.clientWidth * 0.85, behavior: "smooth" });
+        return;
+      }
+      if (event.target.closest("[data-save]")) { onCardAction(event); return; }
+      onCardAction(event);
+      const card = event.target.closest(".discovery-card");
+      if (card && !event.target.closest("a, button")) {
+        const role = card.closest(".discovery-row").dataset.role;
+        const rowCerts = discoveryRowCerts(role);
+        const idx = rowCerts.findIndex(c => c.title === card.dataset.title);
+        if (idx >= 0) {
+          deckOverrideList = rowCerts;
+          openDeck(idx, card.getBoundingClientRect());
+        }
+      }
+    };
+    discoveryRowsEl.addEventListener("click", onDiscoveryClick);
+
+    const onDeckOverlayClick = event => {
+      if (event.target === deckOverlayEl) { closeDeck(); return; }
+      if (event.target.closest("#deckClose")) { closeDeck(); return; }
+      if (event.target.closest("#deckPrev")) { stepDeck(-1); return; }
+      if (event.target.closest("#deckNext")) { stepDeck(1); return; }
+      onCardAction(event);
+    };
+    deckOverlayEl.addEventListener("click", onDeckOverlayClick);
+
+    const onDeckWheel = event => {
+      if (!deckOpen()) return;
+      event.preventDefault();
+      const delta = Math.abs(event.deltaY) > Math.abs(event.deltaX) ? event.deltaY : event.deltaX;
+      if (Math.abs(delta) < 12) return;
+      stepDeck(delta > 0 ? 1 : -1);
+    };
+    deckOverlayEl.addEventListener("wheel", onDeckWheel, { passive: false });
+
+    const onKeydown = event => {
+      if (!deckOpen()) return;
+      if (/input|textarea|select/i.test(event.target.tagName)) return;
+      if (event.key === "Escape") { closeDeck(); return; }
+      if (event.key === "ArrowRight") stepDeck(1);
+      if (event.key === "ArrowLeft") stepDeck(-1);
+    };
+    document.addEventListener("keydown", onKeydown);
+
+    const gridEl = document.querySelector("#certificateGrid");
+    const onGridClick = event => {
       onCardAction(event);
       const card = event.target.closest(".cert-card");
       if (card && !event.target.closest("a, button")) {
@@ -781,12 +656,88 @@
         const idx = matches.findIndex(c => c.title === card.dataset.title);
         if (idx >= 0) openDeck(idx, card.getBoundingClientRect());
       }
-    });
+    };
+    gridEl.addEventListener("click", onGridClick);
 
     updateSpaceBadge();
     loadCatalog();
-  </script>
-  <script src="/ui.js?v=4" defer></script>
-  <script src="/islands.bundle.js" defer></script>
-</body>
-</html>
+
+    return () => {
+      [certSearch, certRole, certCost, certTime].forEach(control => control.removeEventListener("input", onFilterInput));
+      discoveryRowsEl.removeEventListener("click", onDiscoveryClick);
+      deckOverlayEl.removeEventListener("click", onDeckOverlayClick);
+      deckOverlayEl.removeEventListener("wheel", onDeckWheel);
+      document.removeEventListener("keydown", onKeydown);
+      gridEl.removeEventListener("click", onGridClick);
+    };
+  }, []);
+
+  return (
+    <>
+      <DotGrid />
+      <div className="app">
+        <nav className="nav" aria-label="Primary">
+          <a className="brand" href="/">
+            <svg className="brand-logo" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
+              <rect x="10" y="3" width="21" height="21" rx="5.5" fill="#cf8047" opacity="0.35"></rect>
+              <rect x="6.5" y="7.5" width="21" height="21" rx="5.5" fill="#cf8047" opacity="0.7"></rect>
+              <rect x="3" y="12" width="21" height="21" rx="5.5" fill="#f5f7fa"></rect>
+              <path d="M8.5 23l4 4 8-9" fill="none" stroke="#0b1224" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"></path>
+            </svg>
+            <span>CredKit</span>
+          </a>
+          <div className="nav-actions">
+            <SpecularBtn as="a" href="/how-it-works" variant="ghost">How it works</SpecularBtn>
+            <SpecularBtn as="a" href="/profile" variant="plain" className="nav-btn-badge">My space<span className="badge-count" id="spaceBadge" hidden>0</span></SpecularBtn>
+            <SpecularBtn as="a" href="/" variant="primary">Get certificates picked for me</SpecularBtn>
+          </div>
+        </nav>
+
+        <main>
+          <section style={{ padding: "clamp(20px, 4vw, 44px) 0 clamp(8px, 2vw, 16px)" }}>
+            <h1>Browse every certification, ranked by proof value.</h1>
+            <p className="lede">Free and low-cost certifications across six internship tracks - each one tells you the exact proof to build after, so it actually helps you get shortlisted.</p>
+          </section>
+
+          <div id="discoveryRows"></div>
+
+          <section className="panel section" aria-labelledby="catalogTitle">
+            <div className="section-head">
+              <div>
+                <h2 id="catalogTitle">Find a certificate</h2>
+                <p>Filter by track, cost, and time. Click a card for topics and the proof to build.</p>
+              </div>
+              <span className="pill" id="certCount">Loading…</span>
+            </div>
+            <div className="finder-controls">
+              <input id="certSearch" type="search" placeholder="Search provider, skill, certificate" />
+              <select id="certRole" defaultValue="all">
+                <option value="all">All roles</option>
+                <option value="marketing">Marketing</option>
+                <option value="data">Data</option>
+                <option value="product">Product</option>
+                <option value="finance">Finance</option>
+                <option value="design">Design</option>
+                <option value="software">Software dev</option>
+              </select>
+              <select id="certCost" defaultValue="all">
+                <option value="all">Any cost (incl. paid)</option>
+                <option value="free">Free only</option>
+                <option value="cheap">Free or cheap</option>
+              </select>
+              <select id="certTime" defaultValue="all">
+                <option value="all">Any time</option>
+                <option value="short">Under 5 hrs</option>
+                <option value="weekend">Weekend</option>
+              </select>
+            </div>
+            <div className="cert-grid" id="certificateGrid"></div>
+          </section>
+        </main>
+      </div>
+
+      <div className="deck-overlay" id="deckOverlay" hidden></div>
+      <div className="toast" id="toast" role="status" aria-live="polite"></div>
+    </>
+  );
+}

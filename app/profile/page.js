@@ -1,158 +1,17 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>My space - CredKit</title>
-  <meta name="description" content="Your profile, saved certificates, and certificate roads - track everything you're working toward in one place.">
-  <meta name="theme-color" content="#070b16">
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css">
-  <link rel="stylesheet" href="/react-src/islands.css">
-</head>
-<body>
-  <div class="app">
-    <nav class="nav" aria-label="Primary">
-      <a class="brand" href="/">
-        <svg class="brand-logo" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
-          <rect x="10" y="3" width="21" height="21" rx="5.5" fill="#cf8047" opacity="0.35"></rect>
-          <rect x="6.5" y="7.5" width="21" height="21" rx="5.5" fill="#cf8047" opacity="0.7"></rect>
-          <rect x="3" y="12" width="21" height="21" rx="5.5" fill="#f5f7fa"></rect>
-          <path d="M8.5 23l4 4 8-9" fill="none" stroke="#0b1224" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path>
-        </svg>
-        <span>CredKit</span>
-      </a>
-      <div class="nav-actions">
-        <a class="btn ghost" href="/catalog">Browse certificates</a>
-        <a class="btn ghost" href="/how-it-works">How it works</a>
-        <a class="btn primary" href="/">Find certificates</a>
-      </div>
-    </nav>
+"use client";
 
-    <main>
-      <section style="padding: clamp(20px, 4vw, 40px) 0 clamp(8px, 2vw, 14px);">
-        <h1>My space</h1>
-        <p class="lede">Your profile, saved courses, and certificate roads - everything you're working toward, in one place. Stored only in this browser.</p>
-      </section>
+import { useEffect } from "react";
+import DotGrid from "../../components/DotGrid";
+import SpecularBtn from "../../components/SpecularBtn";
+import { useSiteChrome } from "../../lib/siteChrome";
 
-      <div class="stack">
-        <section class="panel intake" aria-labelledby="formTitle">
-          <div class="panel-head">
-            <div>
-              <h2 id="formTitle">My profile</h2>
-              <p>We use this to pick certificates for you. Nothing leaves this browser unless you share it.</p>
-            </div>
-            <div class="avatar" id="avatar">ST</div>
-          </div>
+const SUPABASE_URL = "https://hyynugpbmvqckksmalel.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_4gD59CrE0ty8H3wDj6EzlQ_Zd7PBKKQ";
 
-          <form class="form-grid" id="profileForm">
-            <div class="field">
-              <label class="label" for="studentName">Name</label>
-              <input id="studentName" name="studentName" autocomplete="name" placeholder="Your name">
-            </div>
+export default function ProfilePage() {
+  useSiteChrome();
 
-            <div class="field">
-              <label class="label" for="college">College or city</label>
-              <input id="college" name="college" placeholder="e.g. NMIMS Mumbai, 2nd year">
-            </div>
-
-            <div class="field">
-              <label class="label" for="degree">Degree</label>
-              <select id="degree" name="degree">
-                <option>Commerce / BBA</option>
-                <option>Engineering / CS</option>
-                <option>Design / Media</option>
-                <option>Economics / Finance</option>
-                <option>Other</option>
-              </select>
-            </div>
-
-            <div class="field">
-              <label class="label" for="targetRole">Target role</label>
-              <select id="targetRole" name="targetRole">
-                <option value="marketing">Marketing internship</option>
-                <option value="data">Data analyst internship</option>
-                <option value="product">Product internship</option>
-                <option value="finance">Finance internship</option>
-                <option value="design">Design internship</option>
-                <option value="software">Software dev internship</option>
-              </select>
-            </div>
-
-            <div class="field full">
-              <span class="label">Current proof</span>
-              <div class="checks">
-                <label class="check"><input type="checkbox" name="proof" value="certificate"> 1+ certificate</label>
-                <label class="check"><input type="checkbox" name="proof" value="project"> Public project</label>
-                <label class="check"><input type="checkbox" name="proof" value="linkedin"> LinkedIn profile</label>
-                <label class="check"><input type="checkbox" name="proof" value="resume"> Resume draft</label>
-                <label class="check"><input type="checkbox" name="proof" value="internship"> Prior internship</label>
-                <label class="check"><input type="checkbox" name="proof" value="portfolio"> Portfolio link</label>
-              </div>
-            </div>
-
-            <div class="field full">
-              <span class="label">Weekly time</span>
-              <div class="segmented">
-                <input id="time1" type="radio" name="weeklyTime" value="3" checked>
-                <label for="time1">3 hrs</label>
-                <input id="time2" type="radio" name="weeklyTime" value="6">
-                <label for="time2">6 hrs</label>
-                <input id="time3" type="radio" name="weeklyTime" value="10">
-                <label for="time3">10+ hrs</label>
-              </div>
-            </div>
-
-            <div class="field full">
-              <label class="label" for="achievements">Raw achievements</label>
-              <textarea id="achievements" name="achievements" placeholder="e.g. Completed one online course, ran my club's Instagram, built a small Excel dashboard…"></textarea>
-            </div>
-
-            <div class="form-actions">
-              <button class="btn primary" type="submit">Save &amp; get recommendations</button>
-              <button class="btn" type="button" id="saveBtn">Save</button>
-              <button class="btn ghost" type="button" id="shareLinkBtn">Share link</button>
-              <span class="mini" id="savedState">Not saved yet</span>
-            </div>
-          </form>
-        </section>
-
-        <section class="panel section" id="roadsPanel" hidden aria-labelledby="roadsTitle">
-          <div class="section-head">
-            <div>
-              <h2 id="roadsTitle">My roads</h2>
-              <p>Your saved certificate paths. Tick each one off as you finish it.</p>
-            </div>
-          </div>
-          <div id="roadsList"></div>
-        </section>
-
-        <section class="panel section" id="coursesPanel" aria-labelledby="myCoursesTitle">
-          <div class="section-head">
-            <div>
-              <h2 id="myCoursesTitle">My courses</h2>
-              <p>Everything you saved or marked completed, from any page.</p>
-            </div>
-            <span class="pill" id="coursesCount"></span>
-          </div>
-          <div id="coursesList"></div>
-          <p class="empty" id="coursesEmpty" hidden>Nothing saved yet. <a href="/catalog">Browse the catalog</a> and hit "+ Add to my space" on any course.</p>
-        </section>
-      </div>
-    </main>
-  </div>
-
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
-
-  <script>
-    /* My space: profile + saved courses + roads. Shares localStorage keys with the
-       home page and /catalog, so everything saved anywhere shows up here. */
-    const SUPABASE_URL = "https://hyynugpbmvqckksmalel.supabase.co";
-    const SUPABASE_ANON_KEY = "sb_publishable_4gD59CrE0ty8H3wDj6EzlQ_Zd7PBKKQ"; // publishable (public) key
-
+  useEffect(() => {
     const analytics = {
       enabled() { return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY); },
       sessionId() {
@@ -176,12 +35,6 @@
       }
     };
 
-    const ROLE_LABELS = {
-      marketing: "Marketing internship", data: "Data analyst internship", product: "Product internship",
-      finance: "Finance internship", design: "Design internship", software: "Software dev internship"
-    };
-    const PROOF_LABELS = { certificate: "Certificate", project: "Public project", linkedin: "LinkedIn", resume: "Resume", internship: "Prior internship", portfolio: "Portfolio" };
-
     const storageKey = "proofpath-demo-profile";
     const roadsKey = "proofpath-roads";
     const certProgressKey = "proofpath-cert-progress";
@@ -201,10 +54,7 @@
       try { return JSON.parse(localStorage.getItem(roadsKey)) || []; }
       catch (error) { return []; }
     }
-    function setRoads(roads) {
-      localStorage.setItem(roadsKey, JSON.stringify(roads));
-      renderAll();
-    }
+    function setRoads(roads) { localStorage.setItem(roadsKey, JSON.stringify(roads)); renderAll(); }
     function getSavedCourses() {
       try { return JSON.parse(localStorage.getItem(savedCoursesKey)) || []; }
       catch (error) { return []; }
@@ -228,16 +78,12 @@
       return String(name || "").split(" ").filter(Boolean).slice(0, 2).map(part => part[0].toUpperCase()).join("") || "ST";
     }
 
-    /* ---------- Profile form ---------- */
     function getProfile() {
       const data = new FormData(form);
       return {
-        name: data.get("studentName") || "Student",
-        college: data.get("college") || "",
-        degree: data.get("degree") || "",
-        role: data.get("targetRole") || "marketing",
-        proofs: data.getAll("proof"),
-        weeklyTime: Number(data.get("weeklyTime") || 3),
+        name: data.get("studentName") || "Student", college: data.get("college") || "",
+        degree: data.get("degree") || "", role: data.get("targetRole") || "marketing",
+        proofs: data.getAll("proof"), weeklyTime: Number(data.get("weeklyTime") || 3),
         achievements: data.get("achievements") || ""
       };
     }
@@ -248,9 +94,7 @@
       form.degree.value = profile.degree || "Commerce / BBA";
       form.targetRole.value = profile.role || "marketing";
       form.achievements.value = profile.achievements || "";
-      form.querySelectorAll('input[name="proof"]').forEach(input => {
-        input.checked = (profile.proofs || []).includes(input.value);
-      });
+      form.querySelectorAll('input[name="proof"]').forEach(input => { input.checked = (profile.proofs || []).includes(input.value); });
       const time = form.querySelector(`input[name="weeklyTime"][value="${profile.weeklyTime || 3}"]`);
       if (time) time.checked = true;
     }
@@ -261,33 +105,24 @@
       if (!silent) showToast("Profile saved.");
     }
 
-    function encodeProfile(profile) {
-      return btoa(unescape(encodeURIComponent(JSON.stringify(profile))));
-    }
+    function encodeProfile(profile) { return btoa(unescape(encodeURIComponent(JSON.stringify(profile)))); }
 
     async function shareProfileLink() {
       const encoded = encodeProfile(getProfile());
-      const base = window.location.origin && window.location.origin !== "null"
-        ? `${window.location.origin}/`
-        : "/";
+      const base = window.location.origin && window.location.origin !== "null" ? `${window.location.origin}/` : "/";
       const url = `${base}?p=${encoded}`;
       try {
         await navigator.clipboard.writeText(url);
         analytics.track("profile_shared", { role: form.targetRole.value });
         showToast("Share link copied.");
-      } catch (error) {
-        showToast("Could not copy link in this browser.");
-      }
+      } catch (error) { showToast("Could not copy link in this browser."); }
     }
 
-    /* ---------- LinkedIn post generator ---------- */
     function fallbackLinkedInPost(cert) {
       const tag = String(cert.role || "career").replace(/[^a-z0-9]/gi, "");
       return [
-        `Just finished "${cert.title}"${cert.provider ? ` from ${cert.provider}` : ""}. 🎓`,
-        "",
-        cert.proofTip ? `Next up: ${cert.proofTip}` : "Excited to put this into practice.",
-        "",
+        `Just finished "${cert.title}"${cert.provider ? ` from ${cert.provider}` : ""}. 🎓`, "",
+        cert.proofTip ? `Next up: ${cert.proofTip}` : "Excited to put this into practice.", "",
         `#Certification #${tag} #StudentLife`
       ].join("\n");
     }
@@ -299,17 +134,14 @@
       let text;
       try {
         const res = await fetch("/api/linkedin-post", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+          method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ title: cert.title, provider: cert.provider, proofTip: cert.proofTip, role: cert.role, name: profile.name, achievements: profile.achievements })
         });
         if (!res.ok) throw new Error("http " + res.status);
         const data = await res.json();
         text = data.post;
         if (!text) throw new Error("empty");
-      } catch (error) {
-        text = fallbackLinkedInPost(cert);
-      }
+      } catch (error) { text = fallbackLinkedInPost(cert); }
       const safeId = escapeHtml(cert.title).replace(/[^a-z0-9]/gi, "");
       container.innerHTML = `
         <label class="label" for="liText-${safeId}">Your draft post</label>
@@ -327,7 +159,6 @@
       analytics.track("linkedin_post_drafted", { role: cert.role, cert_title: cert.title, cert_provider: cert.provider, meta: { source: "profile" } });
     }
 
-    /* ---------- My roads ---------- */
     function renderRoads() {
       const panel = document.querySelector("#roadsPanel");
       const list = document.querySelector("#roadsList");
@@ -358,7 +189,8 @@
       }).join("");
     }
 
-    document.querySelector("#roadsList").addEventListener("click", event => {
+    const roadsListEl = document.querySelector("#roadsList");
+    const onRoadsListClick = event => {
       const del = event.target.closest("[data-road-delete]");
       if (del) {
         const roads = getRoads();
@@ -386,9 +218,9 @@
         setCompleted(completed);
         renderAll();
       }
-    });
+    };
+    roadsListEl.addEventListener("click", onRoadsListClick);
 
-    /* ---------- My courses (cart + roads + completed, merged) ---------- */
     function renderMyCourses() {
       const list = document.querySelector("#coursesList");
       const emptyNote = document.querySelector("#coursesEmpty");
@@ -400,14 +232,9 @@
         const full = findCert(base.title) || {};
         const prior = courses.get(base.title) || {};
         courses.set(base.title, {
-          title: base.title,
-          provider: base.provider || full.provider || "",
-          url: base.url || full.url || "#",
-          cost: full.priceNote || full.cost || base.cost || "",
-          hours: full.hours || base.hours,
-          level: full.level || base.level,
-          role: full.role || base.role,
-          proofTip: full.proofTip || "",
+          title: base.title, provider: base.provider || full.provider || "", url: base.url || full.url || "#",
+          cost: full.priceNote || full.cost || base.cost || "", hours: full.hours || base.hours,
+          level: full.level || base.level, role: full.role || base.role, proofTip: full.proofTip || "",
           roads: [...(prior.roads || []), ...(extra && extra.road ? [extra.road] : [])]
         });
       }
@@ -448,7 +275,8 @@
       }).join("");
     }
 
-    document.querySelector("#coursesList").addEventListener("click", event => {
+    const coursesListEl = document.querySelector("#coursesList");
+    const onCoursesListClick = event => {
       const doneBtn = event.target.closest("[data-mycourse-done]");
       if (doneBtn) {
         const title = doneBtn.dataset.mycourseDone;
@@ -479,16 +307,16 @@
         const safeId = escapeHtml(title).replace(/[^a-z0-9]/gi, "");
         draftLinkedInPost(cert, document.querySelector(`#myCourseLi-${safeId}`));
       }
-    });
+    };
+    coursesListEl.addEventListener("click", onCoursesListClick);
 
-    /* ---------- Wiring ---------- */
     function renderAll() {
       document.querySelector("#avatar").textContent = initials(form.studentName.value);
       renderRoads();
       renderMyCourses();
     }
 
-    form.addEventListener("submit", event => {
+    const onFormSubmit = event => {
       event.preventDefault();
       saveProfile(true);
       const profile = getProfile();
@@ -497,14 +325,18 @@
         meta: { proofs: profile.proofs, weekly_time: profile.weeklyTime, achievements_len: profile.achievements.trim().length, source: "profile" }
       });
       window.location.href = "/?recs=1";
-    });
-    form.addEventListener("input", () => {
-      document.querySelector("#avatar").textContent = initials(form.studentName.value);
-    });
-    document.querySelector("#saveBtn").addEventListener("click", () => saveProfile(false));
-    document.querySelector("#shareLinkBtn").addEventListener("click", shareProfileLink);
+    };
+    const onFormInput = () => { document.querySelector("#avatar").textContent = initials(form.studentName.value); };
+    form.addEventListener("submit", onFormSubmit);
+    form.addEventListener("input", onFormInput);
 
-    // Catalog (for enriching saved-course details): Supabase first, static fallback second.
+    const saveBtnEl = document.querySelector("#saveBtn");
+    const onSaveClick = () => saveProfile(false);
+    saveBtnEl.addEventListener("click", onSaveClick);
+
+    const shareLinkBtnEl = document.querySelector("#shareLinkBtn");
+    shareLinkBtnEl.addEventListener("click", shareProfileLink);
+
     async function loadCatalog() {
       try {
         const res = await fetch(`${SUPABASE_URL}/rest/v1/certificates?select=*&order=role.asc`, {
@@ -515,8 +347,7 @@
           if (Array.isArray(rows) && rows.length) {
             certificateData = rows.map(row => ({
               role: row.role, provider: row.provider, title: row.title, cost: row.cost,
-              priceNote: row.price_note, hours: row.hours, level: row.level,
-              url: row.url, proofTip: row.proof_tip
+              priceNote: row.price_note, hours: row.hours, level: row.level, url: row.url, proofTip: row.proof_tip
             }));
             renderAll();
             return;
@@ -532,20 +363,154 @@
       } catch (error) { /* saved-course base data still renders */ }
     }
 
-    // Load saved profile into the form.
-    (function init() {
-      try {
-        const saved = JSON.parse(localStorage.getItem(storageKey) || "null");
-        if (saved) {
-          applyProfile(saved);
-          document.querySelector("#savedState").textContent = "Saved in this browser";
-        }
-      } catch (error) { localStorage.removeItem(storageKey); }
-      renderAll();
-      loadCatalog();
-    })();
-  </script>
-  <script src="/ui.js?v=4" defer></script>
-  <script src="/islands.bundle.js" defer></script>
-</body>
-</html>
+    try {
+      const saved = JSON.parse(localStorage.getItem(storageKey) || "null");
+      if (saved) {
+        applyProfile(saved);
+        document.querySelector("#savedState").textContent = "Saved in this browser";
+      }
+    } catch (error) { localStorage.removeItem(storageKey); }
+    renderAll();
+    loadCatalog();
+
+    return () => {
+      roadsListEl.removeEventListener("click", onRoadsListClick);
+      coursesListEl.removeEventListener("click", onCoursesListClick);
+      form.removeEventListener("submit", onFormSubmit);
+      form.removeEventListener("input", onFormInput);
+      saveBtnEl.removeEventListener("click", onSaveClick);
+      shareLinkBtnEl.removeEventListener("click", shareProfileLink);
+    };
+  }, []);
+
+  return (
+    <>
+      <DotGrid />
+      <div className="app">
+        <nav className="nav" aria-label="Primary">
+          <a className="brand" href="/">
+            <svg className="brand-logo" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
+              <rect x="10" y="3" width="21" height="21" rx="5.5" fill="#cf8047" opacity="0.35"></rect>
+              <rect x="6.5" y="7.5" width="21" height="21" rx="5.5" fill="#cf8047" opacity="0.7"></rect>
+              <rect x="3" y="12" width="21" height="21" rx="5.5" fill="#f5f7fa"></rect>
+              <path d="M8.5 23l4 4 8-9" fill="none" stroke="#0b1224" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"></path>
+            </svg>
+            <span>CredKit</span>
+          </a>
+          <div className="nav-actions">
+            <SpecularBtn as="a" href="/catalog" variant="ghost">Browse certificates</SpecularBtn>
+            <SpecularBtn as="a" href="/how-it-works" variant="ghost">How it works</SpecularBtn>
+            <SpecularBtn as="a" href="/" variant="primary">Find certificates</SpecularBtn>
+          </div>
+        </nav>
+
+        <main>
+          <section style={{ padding: "clamp(20px, 4vw, 40px) 0 clamp(8px, 2vw, 14px)" }}>
+            <h1>My space</h1>
+            <p className="lede">Your profile, saved courses, and certificate roads - everything you&apos;re working toward, in one place. Stored only in this browser.</p>
+          </section>
+
+          <div className="stack">
+            <section className="panel intake" aria-labelledby="formTitle">
+              <div className="panel-head">
+                <div>
+                  <h2 id="formTitle">My profile</h2>
+                  <p>We use this to pick certificates for you. Nothing leaves this browser unless you share it.</p>
+                </div>
+                <div className="avatar" id="avatar">ST</div>
+              </div>
+
+              <form className="form-grid" id="profileForm">
+                <div className="field">
+                  <label className="label" htmlFor="studentName">Name</label>
+                  <input id="studentName" name="studentName" autoComplete="name" placeholder="Your name" />
+                </div>
+                <div className="field">
+                  <label className="label" htmlFor="college">College or city</label>
+                  <input id="college" name="college" placeholder="e.g. NMIMS Mumbai, 2nd year" />
+                </div>
+                <div className="field">
+                  <label className="label" htmlFor="degree">Degree</label>
+                  <select id="degree" name="degree" defaultValue="Commerce / BBA">
+                    <option>Commerce / BBA</option>
+                    <option>Engineering / CS</option>
+                    <option>Design / Media</option>
+                    <option>Economics / Finance</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+                <div className="field">
+                  <label className="label" htmlFor="targetRole">Target role</label>
+                  <select id="targetRole" name="targetRole" defaultValue="marketing">
+                    <option value="marketing">Marketing internship</option>
+                    <option value="data">Data analyst internship</option>
+                    <option value="product">Product internship</option>
+                    <option value="finance">Finance internship</option>
+                    <option value="design">Design internship</option>
+                    <option value="software">Software dev internship</option>
+                  </select>
+                </div>
+                <div className="field full">
+                  <span className="label">Current proof</span>
+                  <div className="checks">
+                    <label className="check"><input type="checkbox" name="proof" value="certificate" /> 1+ certificate</label>
+                    <label className="check"><input type="checkbox" name="proof" value="project" /> Public project</label>
+                    <label className="check"><input type="checkbox" name="proof" value="linkedin" /> LinkedIn profile</label>
+                    <label className="check"><input type="checkbox" name="proof" value="resume" /> Resume draft</label>
+                    <label className="check"><input type="checkbox" name="proof" value="internship" /> Prior internship</label>
+                    <label className="check"><input type="checkbox" name="proof" value="portfolio" /> Portfolio link</label>
+                  </div>
+                </div>
+                <div className="field full">
+                  <span className="label">Weekly time</span>
+                  <div className="segmented">
+                    <input id="time1" type="radio" name="weeklyTime" value="3" defaultChecked />
+                    <label htmlFor="time1">3 hrs</label>
+                    <input id="time2" type="radio" name="weeklyTime" value="6" />
+                    <label htmlFor="time2">6 hrs</label>
+                    <input id="time3" type="radio" name="weeklyTime" value="10" />
+                    <label htmlFor="time3">10+ hrs</label>
+                  </div>
+                </div>
+                <div className="field full">
+                  <label className="label" htmlFor="achievements">Raw achievements</label>
+                  <textarea id="achievements" name="achievements" placeholder="e.g. Completed one online course, ran my club's Instagram, built a small Excel dashboard…"></textarea>
+                </div>
+                <div className="form-actions">
+                  <SpecularBtn as="button" type="submit" variant="primary">Save &amp; get recommendations</SpecularBtn>
+                  <SpecularBtn as="button" type="button" id="saveBtn" variant="plain">Save</SpecularBtn>
+                  <SpecularBtn as="button" type="button" id="shareLinkBtn" variant="ghost">Share link</SpecularBtn>
+                  <span className="mini" id="savedState">Not saved yet</span>
+                </div>
+              </form>
+            </section>
+
+            <section className="panel section" id="roadsPanel" hidden aria-labelledby="roadsTitle">
+              <div className="section-head">
+                <div>
+                  <h2 id="roadsTitle">My roads</h2>
+                  <p>Your saved certificate paths. Tick each one off as you finish it.</p>
+                </div>
+              </div>
+              <div id="roadsList"></div>
+            </section>
+
+            <section className="panel section" id="coursesPanel" aria-labelledby="myCoursesTitle">
+              <div className="section-head">
+                <div>
+                  <h2 id="myCoursesTitle">My courses</h2>
+                  <p>Everything you saved or marked completed, from any page.</p>
+                </div>
+                <span className="pill" id="coursesCount"></span>
+              </div>
+              <div id="coursesList"></div>
+              <p className="empty" id="coursesEmpty" hidden>Nothing saved yet. <a href="/catalog">Browse the catalog</a> and hit &quot;+ Add to my space&quot; on any course.</p>
+            </section>
+          </div>
+        </main>
+      </div>
+
+      <div className="toast" id="toast" role="status" aria-live="polite"></div>
+    </>
+  );
+}

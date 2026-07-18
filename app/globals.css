@@ -17,13 +17,16 @@
   --line: rgba(255, 255, 255, 0.08);
   --line-strong: rgba(255, 255, 255, 0.16);
 
-  --card: linear-gradient(165deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.03));
-  --card-border: rgba(255, 255, 255, 0.14);
+  /* Matte premium finish: solid opaque surface (no blur, no see-through glass),
+     a hairline border for definition, and a soft elevated shadow with a faint
+     top sheen instead of a frosted backdrop. */
+  --card: linear-gradient(165deg, #141d35, #0e1526);
+  --card-border: rgba(255, 255, 255, 0.10);
   --card-ink: #eef1f7;
   --card-muted: #9aa3b8;
-  --card-line: rgba(255, 255, 255, 0.12);
-  --card-fill: rgba(255, 255, 255, 0.06);
-  --card-blur: blur(22px) saturate(150%);
+  --card-line: rgba(255, 255, 255, 0.10);
+  --card-fill: rgba(255, 255, 255, 0.05);
+  --card-blur: none;
 
   --accent: #cf8047;        /* warm amber (Lumora accent family) */
   --accent-deep: #97501f;
@@ -38,7 +41,7 @@
   --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);   /* {210,26} */
   --ease-hover: cubic-bezier(0.2, 0.8, 0.2, 1);    /* {320,18} */
 
-  --shadow-card: 0 18px 50px rgba(2, 4, 10, 0.55);
+  --shadow-card: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 16px 40px rgba(2, 4, 10, 0.45);
   color-scheme: dark;
 }
 
@@ -1266,4 +1269,51 @@ select option { background: var(--bg-2); color: var(--ink); }
     animation: none !important;
   }
   [data-reveal] { opacity: 1; transform: none; }
+}
+
+/* ---------------- Specular button rim-light + DarkVeil background ---------------- */
+.btn.specular-active {
+  position: relative;
+  overflow: visible;
+}
+
+.specular-button__fx {
+  position: absolute;
+  inset: -14px;
+  z-index: 0;
+  display: block;
+  pointer-events: none;
+}
+
+.specular-button__fx-canvas,
+.specular-button__fx-canvas canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.btn.specular-active > .specular-button__label {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Full-bleed WebGL background mounted by DarkVeil on the homepage only, in
+   place of the ambient dot-grid canvas used on the other pages. Lives outside
+   .app (see app/page.js) so a transformed scroll-reveal ancestor can't hijack
+   it as the position:fixed containing block. */
+#darkveil-root {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+#darkveil-root canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
 }

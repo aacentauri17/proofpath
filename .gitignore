@@ -16,5 +16,9 @@ Thumbs.db
 # Dependencies (none yet, but safe for later)
 node_modules/
 
+# Next.js build output
+.next/
+out/
+
 # Scraper backups
 *.bak
