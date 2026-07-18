@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import DotGrid from "../../components/DotGrid";
+import DarkVeil from "../../components/DarkVeil";
 import SpecularBtn from "../../components/SpecularBtn";
 import { useSiteChrome } from "../../lib/siteChrome";
 
@@ -674,7 +674,7 @@ export default function CatalogPage() {
 
   return (
     <>
-      <DotGrid />
+      <div id="darkveil-root" aria-hidden="true"><DarkVeil hueShift={18} noiseIntensity={0.035} scanlineIntensity={0} speed={0.3} warpAmount={0.55} resolutionScale={1} /></div>
       <div className="app">
         <nav className="nav" aria-label="Primary">
           <a className="brand" href="/">
