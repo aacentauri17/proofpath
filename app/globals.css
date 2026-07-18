@@ -1316,4 +1316,9 @@ select option { background: var(--bg-2); color: var(--ink); }
   display: block;
   width: 100%;
   height: 100%;
+  /* The shader's native palette (dark navy/blue) sits almost exactly on top
+     of this theme's own --bg, so it reads as "not animating" even though it
+     is. Boost brightness/contrast/saturation purely as a display filter -
+     the shader itself is untouched. */
+  filter: brightness(4) contrast(1.25) saturate(1.5);
 }

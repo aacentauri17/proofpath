@@ -117,11 +117,18 @@ export default function DarkVeil({
     const resize = () => {
       const w = parent.clientWidth,
         h = parent.clientHeight;
+      if (!w || !h) return; // parent not laid out yet - the ResizeObserver below will retry
       renderer.setSize(w * resolutionScale, h * resolutionScale);
       program.uniforms.uResolution.value.set(w, h);
     };
 
-    window.addEventListener("resize", resize);
+    // A plain "measure once on mount" can race the browser's layout pass for a
+    // freshly-mounted position:fixed parent, permanently baking a 0x0 size into
+    // the canvas (OGL sets it as an inline style, so no CSS can recover it).
+    // ResizeObserver fires with the real size as soon as layout settles, and
+    // again on every genuine resize after that.
+    const ro = new ResizeObserver(resize);
+    ro.observe(parent);
     resize();
 
     const start = performance.now();
@@ -142,7 +149,7 @@ export default function DarkVeil({
 
     return () => {
       cancelAnimationFrame(frame);
-      window.removeEventListener("resize", resize);
+      ro.disconnect();
     };
   }, [hueShift, noiseIntensity, scanlineIntensity, speed, scanlineFrequency, warpAmount, resolutionScale]);
 
